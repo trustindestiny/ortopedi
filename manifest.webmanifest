@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Ortopedi Simülasyon",
+  "short_name": "Ortopedi",
+  "description": "Ortopedik anestezi soru-cevap ve interaktif simülasyon uygulaması",
+  "lang": "tr-TR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f4f6",
+  "theme_color": "#172554",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

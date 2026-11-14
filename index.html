@@ -538,6 +538,67 @@ button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 }
 @media (display-mode: standalone) { .top-panel { padding-top: max(9px, env(safe-area-inset-top)); } }
 
+/* Dikey ekranda yatay kaydırmasız, esnek tablo düzeni */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+@media (max-width: 640px) {
+  .table-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 8px 6px 20px;
+    overflow: visible;
+  }
+  #soruTablosu {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    table-layout: fixed;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  #soruTablosu th,
+  #soruTablosu td {
+    min-width: 0;
+    padding: 7px 6px;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  #soruTablosu th:first-child,
+  #soruTablosu td.soru-no {
+    width: 48px;
+    max-width: 48px;
+    padding-left: 3px;
+    padding-right: 3px;
+    text-align: center;
+  }
+  #soruTablosu td:not(.soru-no) > *,
+  #soruTablosu td:not(.soru-no) li {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  #soruTablosu td ul { padding-left: 17px; }
+  #soruTablosu .module-row td {
+    width: auto;
+    max-width: none;
+    padding: 9px 7px;
+    letter-spacing: 0.2px;
+  }
+  .top-panel, .control-group, .size-controls, .tab-switcher {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .top-panel { width: 100%; }
+  .control-group { flex-wrap: wrap; }
+  .sim-card, .simulation-container, .sim-answer,
+  .report-module, .report-question-list, .report-qtext {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .report-qtext { flex-basis: 100%; }
+}
+
+
 </style>
 </head>
 <body>

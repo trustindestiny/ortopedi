@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ortopedi Simülasyon</title>
+<meta name="theme-color" content="#172554">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ortopedi">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+    :root { 
+        --k: #3b82f6; 
+        --u: #f59e0b; 
+        --bg: #f3f4f6; 
+        --text: #1f2937; 
+        --scale: 1;
+    }
+    
+    body { 
+        font-family: 'Segoe UI', system-ui, sans-serif; 
+        margin: 0; 
+        padding: 0; 
+        background: var(--bg); 
+        color: var(--text); 
+        transition: font-size 0.2s, padding 0.2s;
+    }
+    
+    .top-panel { 
+        background: rgba(255,255,255,0.95); 
+        backdrop-filter: blur(10px); 
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+        position: sticky; 
+        top: 0; 
+        z-index: 1000; 
+        padding: 12px 24px; 
+        display: flex; 
+        flex-wrap: wrap; 
+        align-items: center; 
+        justify-content: space-between; 
+        gap: 15px; 
+    }
+    .control-group { 
+        display: flex; 
+        gap: 8px; 
+        align-items: center; 
+        background: #f8fafc; 
+        padding: 6px; 
+        border-radius: 12px; 
+        border: 1px solid #e2e8f0; 
+    }
+    .control-group span { 
+        font-size: 13px; 
+        font-weight: 600; 
+        color: #64748b; 
+        margin-right: 5px; 
+        padding-left: 8px; 
+    }
+    button { 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 6px; 
+        padding: 8px 16px; 
+        font-size: 14px; 
+        font-weight: 600; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        transition: all 0.2s; 
+        font-family: inherit; 
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    
+    .btn-filter { background: white; color: #475569; border: 1px solid #e2e8f0; }
+    .btn-filter:hover { background: #f1f5f9; }
+    .btn-filter.active { background: #1e293b; color: white; border-color: #1e293b; }
+    
+    .btn-action { background: #10b981; color: white; box-shadow: 0 2px 4px rgba(16,185,129,0.2); }
+    .btn-action:hover { background: #059669; }
+    
+    .btn-print { background: #6366f1; color: white; box-shadow: 0 2px 4px rgba(99,102,241,0.2); }
+    .btn-print:hover { background: #4f46e5; }
+
+    .size-controls { 
+        display: flex; 
+        align-items: center; 
+        gap: 5px; 
+        background: white; 
+        border: 1px solid #e2e8f0; 
+        border-radius: 8px; 
+        padding: 4px; 
+    }
+    .btn-size-ctrl { 
+        background: #f1f5f9; 
+        color: #334155; 
+        padding: 6px 12px; 
+        border-radius: 6px; 
+        font-size: 18px; 
+        font-weight: bold;
+        line-height: 1;
+    }
+    .btn-size-ctrl:hover { background: #cbd5e1; }
+    .btn-size-ctrl:disabled { opacity: 0.4; cursor: not-allowed; }
+    .scale-display { 
+        font-size: 13px; 
+        font-weight: 700; 
+        color: #1e293b; 
+        min-width: 45px; 
+        text-align: center; 
+    }
+
+    .tab-switcher {
+        display: flex;
+        gap: 4px;
+        background: #f1f5f9;
+        padding: 5px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .tab-btn {
+        padding: 8px 20px;
+        font-size: 14px;
+        font-weight: 700;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+    .tab-btn:hover { color: #1e293b; background: #e2e8f0; }
+    .tab-btn.active {
+        background: #1e293b;
+        color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .table-container { 
+        padding: 20px; 
+        max-width: 1400px; 
+        margin: 0 auto; 
+        transition: all 0.2s;
+    }
+    
+    table { 
+        width: 100%; 
+        border-collapse: separate; 
+        border-spacing: 0; 
+        background: white; 
+        border-radius: 12px; 
+        overflow: hidden; 
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+        font-size: calc(14px * var(--scale));
+        transition: all 0.2s;
+    }
+    
+    th, td { 
+        padding: calc(12px * var(--scale)) calc(16px * var(--scale));
+        text-align: left; 
+        vertical-align: top; 
+        border-bottom: 1px solid #f1f5f9; 
+        transition: all 0.2s;
+    }
+    
+    th { 
+        background: #1e293b; 
+        color: white; 
+        font-weight: 600; 
+        text-transform: uppercase; 
+        font-size: calc(13px * var(--scale)); 
+        letter-spacing: 0.5px; 
+    }
+    
+    .module-row td { 
+        background: #fef3c7; 
+        color: #92400e; 
+        font-weight: 700; 
+        text-align: center; 
+        padding: calc(12px * var(--scale)); 
+        font-size: calc(15px * var(--scale)); 
+        letter-spacing: 1px; 
+        border-bottom: 1px solid #fcd34d; 
+    }
+    
+    .soru-no { 
+        font-weight: 700; 
+        text-align: center; 
+        font-size: calc(15px * var(--scale)); 
+        width: calc(80px * var(--scale)); 
+        border-radius: 8px; 
+        color: white; 
+        padding: calc(8px * var(--scale)); 
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); 
+        transition: all 0.2s;
+    }
+    .bg-k { background-color: var(--k); }
+    .bg-u { background-color: var(--u); }
+
+    .answer-content { 
+        display: none; 
+        margin-top: calc(10px * var(--scale)); 
+        background: #f8fafc; 
+        padding: calc(12px * var(--scale)); 
+        border-radius: 8px; 
+        border-left: calc(4px * var(--scale)) solid #cbd5e1; 
+        animation: fadeIn 0.3s ease-in-out; 
+    }
+    .answer-content.visible { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .btn-toggle-ans { 
+        background: #e2e8f0; 
+        color: #475569; 
+        font-size: calc(12px * var(--scale)); 
+        padding: calc(6px * var(--scale)) calc(12px * var(--scale)); 
+        margin-top: calc(10px * var(--scale)); 
+        border-radius: 20px; 
+    }
+    .btn-toggle-ans:hover { background: #cbd5e1; color: #1e293b; }
+    .btn-toggle-ans.active { background: #ef4444; color: white; }
+    .btn-toggle-ans.active:hover { background: #dc2626; }
+
+    td ul { margin: 0; padding-left: calc(20px * var(--scale)); }
+    td li { 
+        margin-bottom: calc(6px * var(--scale)); 
+        line-height: 1.5; 
+        font-size: calc(14px * var(--scale)); 
+        transition: all 0.2s;
+    }
+
+    /* ==================== SIMÜLASYON STİLLERİ ==================== */
+    .simulation-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 40px 20px 60px;
+        min-height: calc(100vh - 100px);
+        box-sizing: border-box;
+    }
+
+    .sim-screen { animation: simFade 0.35s ease-in-out; }
+    @keyframes simFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .sim-setup-header { text-align: center; margin-bottom: 40px; }
+    .sim-setup-header h2 {
+        font-size: 30px; color: #1e293b; margin: 0 0 8px;
+        font-weight: 800; letter-spacing: -0.5px;
+    }
+    .sim-setup-header p { color: #64748b; margin: 0; font-size: 15px; }
+    .sim-section { margin-bottom: 32px; }
+    .sim-section h3 {
+        font-size: 14px; color: #475569; margin: 0 0 14px;
+        font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .sim-options { display: flex; gap: 12px; flex-wrap: wrap; }
+    .sim-option-btn {
+        flex: 1; min-width: 160px; padding: 22px 24px;
+        border: 2px solid #e2e8f0; background: white; border-radius: 14px;
+        font-size: 16px; font-weight: 700; color: #475569;
+        cursor: pointer; transition: all 0.2s; font-family: inherit; text-align: center;
+    }
+    .sim-option-btn:hover {
+        border-color: #93c5fd; transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(59,130,246,0.15);
+    }
+    .sim-option-btn.active {
+        border-color: #3b82f6; background: #eff6ff; color: #1e40af;
+        box-shadow: 0 6px 16px rgba(59,130,246,0.25);
+    }
+    .sim-option-btn small {
+        display: block; font-size: 12px; font-weight: 500;
+        color: #94a3b8; margin-top: 6px;
+    }
+    .sim-option-btn.active small { color: #60a5fa; }
+
+    .sim-start-btn {
+        display: block; margin: 44px auto 0; padding: 16px 52px;
+        font-size: 17px; font-weight: 800;
+        background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;
+        border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+        box-shadow: 0 6px 20px rgba(59,130,246,0.35); font-family: inherit;
+        letter-spacing: 0.3px;
+    }
+    .sim-start-btn:hover:not(:disabled) {
+        transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.45);
+    }
+    .sim-start-btn:disabled {
+        background: #cbd5e1; box-shadow: none; cursor: not-allowed; transform: none;
+    }
+
+    .sim-header { margin-bottom: 22px; }
+    .sim-progress-text {
+        font-size: 13px; font-weight: 600; color: #64748b;
+        text-align: right; margin-bottom: 8px;
+        display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+    }
+    .sim-mode-label { color: #d97706; font-weight: 700; }
+    .sim-progress-bar {
+        height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;
+    }
+    .sim-progress-bar > div {
+        height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb);
+        border-radius: 4px; transition: width 0.35s ease;
+    }
+
+    .sim-card {
+        background: white; border-radius: 18px; padding: 40px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        border: 1px solid #e2e8f0; animation: simFade 0.35s;
+    }
+    .sim-card-meta { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
+    .sim-module-badge {
+        display: inline-block; padding: 6px 14px;
+        background: #fef3c7; color: #92400e; border-radius: 20px;
+        font-size: 12px; font-weight: 700;
+    }
+    .sim-type-badge {
+        display: inline-block; padding: 6px 14px; border-radius: 20px;
+        font-size: 12px; font-weight: 700;
+    }
+    .sim-type-badge.type-k { background: #dbeafe; color: #1e40af; }
+    .sim-type-badge.type-u { background: #ffedd5; color: #9a3412; }
+
+    .sim-question {
+        font-size: calc(17px * var(--scale)); line-height: 1.6;
+        color: #1e293b; margin-bottom: 24px; font-weight: 500;
+    }
+    .sim-question strong { font-weight: 700; }
+
+    .sim-show-answer-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 12px 30px; background: #3b82f6; color: white;
+        border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
+        cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+    .sim-show-answer-btn:hover {
+        background: #2563eb; transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(59,130,246,0.3);
+    }
+
+    .sim-answer {
+        margin-top: 24px; padding: 24px; background: #f8fafc;
+        border-radius: 12px; border-left: 4px solid #3b82f6;
+        animation: simFade 0.3s ease-in-out;
+        font-size: calc(14px * var(--scale)); line-height: 1.6;
+    }
+    .sim-answer ul { margin: 0; padding-left: 20px; }
+    .sim-answer li { margin-bottom: 8px; }
+
+    .sim-card-actions {
+        display: flex; gap: 12px; margin-top: 28px;
+        padding-top: 24px; border-top: 1px solid #e2e8f0;
+        animation: simFade 0.25s ease-in-out;
+    }
+    .sim-didnt-know-btn, .sim-knew-btn {
+        flex: 1; padding: 14px 24px; border-radius: 10px;
+        font-size: 15px; font-weight: 700; cursor: pointer;
+        border: 2px solid; transition: all 0.2s; font-family: inherit;
+    }
+    .sim-didnt-know-btn {
+        background: white; color: #dc2626; border-color: #fecaca;
+    }
+    .sim-didnt-know-btn:hover {
+        background: #fef2f2; border-color: #dc2626; transform: translateY(-1px);
+    }
+    .sim-knew-btn {
+        background: white; color: #16a34a; border-color: #bbf7d0;
+    }
+    .sim-knew-btn:hover {
+        background: #f0fdf4; border-color: #16a34a; transform: translateY(-1px);
+    }
+
+    /* Erken bitirme butonu */
+    .sim-finish-btn {
+        display: block; margin: 24px auto 0; padding: 10px 28px;
+        font-size: 14px; font-weight: 600; background: white; color: #64748b;
+        border: 1.5px solid #e2e8f0; border-radius: 10px;
+        cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+    .sim-finish-btn:hover {
+        background: #fef2f2; color: #dc2626; border-color: #fecaca;
+        transform: translateY(-1px);
+    }
+
+    .sim-report-header { text-align: center; margin-bottom: 32px; }
+    .sim-report-header h2 {
+        font-size: 30px; color: #1e293b; margin: 0 0 8px;
+        font-weight: 800; letter-spacing: -0.5px;
+    }
+    .sim-report-header p { color: #64748b; margin: 0; font-size: 15px; }
+
+    .sim-stats {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px; margin-bottom: 36px;
+    }
+    .stat-card {
+        background: white; padding: 22px 20px; border-radius: 14px;
+        text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+    }
+    .stat-value { font-size: 34px; font-weight: 800; color: #1e293b; line-height: 1.1; }
+    .stat-label {
+        font-size: 12px; color: #64748b; font-weight: 700;
+        margin-top: 6px; text-transform: uppercase; letter-spacing: 0.6px;
+    }
+    .stat-success .stat-value { color: #16a34a; }
+    .stat-danger .stat-value { color: #dc2626; }
+    .stat-info .stat-value { color: #3b82f6; }
+
+    .report-subtitle {
+        font-size: 14px; color: #475569; text-transform: uppercase;
+        letter-spacing: 1px; margin: 0 0 16px; font-weight: 700;
+    }
+    .report-module {
+        background: white; border-radius: 14px; padding: 22px 26px;
+        margin-bottom: 16px; border-left: 4px solid #f59e0b;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+    .report-module-title {
+        font-size: 15px; font-weight: 700; color: #92400e; margin-bottom: 14px;
+    }
+    .report-question-list { list-style: none; padding: 0; margin: 0; }
+    .report-question-list li {
+        display: flex; align-items: flex-start; gap: 10px;
+        padding: 12px 0; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap;
+    }
+    .report-question-list li:last-child { border-bottom: none; }
+    .report-qno {
+        flex-shrink: 0; padding: 4px 12px; border-radius: 6px;
+        font-size: 12px; font-weight: 800; color: white;
+    }
+    .report-qno.type-k { background: #3b82f6; }
+    .report-qno.type-u { background: #f59e0b; }
+    .report-type {
+        flex-shrink: 0; padding: 4px 10px; border-radius: 6px;
+        font-size: 11px; font-weight: 700;
+    }
+    .report-type.type-k { background: #dbeafe; color: #1e40af; }
+    .report-type.type-u { background: #ffedd5; color: #9a3412; }
+    .report-qtext {
+        flex: 1; font-size: 14px; color: #475569; line-height: 1.5; min-width: 220px;
+    }
+
+    .report-empty {
+        text-align: center; padding: 48px 20px;
+        background: #f0fdf4; border: 2px dashed #86efac;
+        border-radius: 14px; color: #16a34a; font-size: 16px; font-weight: 700;
+    }
+
+    .sim-report-actions {
+        display: flex; gap: 12px; margin-top: 32px;
+        flex-wrap: wrap; justify-content: center;
+    }
+    .sim-retry-btn, .sim-restart-btn {
+        padding: 14px 34px; border-radius: 10px; font-size: 15px;
+        font-weight: 700; cursor: pointer; border: none;
+        transition: all 0.2s; font-family: inherit;
+    }
+    .sim-retry-btn {
+        background: #f59e0b; color: white;
+        box-shadow: 0 4px 14px rgba(245,158,11,0.3);
+    }
+    .sim-retry-btn:hover {
+        background: #d97706; transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(245,158,11,0.4);
+    }
+    .sim-restart-btn {
+        background: #1e293b; color: white;
+        box-shadow: 0 4px 14px rgba(30,41,59,0.3);
+    }
+    .sim-restart-btn:hover { background: #0f172a; transform: translateY(-1px); }
+
+    @media (max-width: 640px) {
+        .simulation-container { padding: 20px 12px; }
+        .sim-card { padding: 24px 20px; }
+        .sim-options { flex-direction: column; }
+        .sim-card-actions { flex-direction: column; }
+        .sim-report-actions { flex-direction: column; }
+        .sim-report-actions button { width: 100%; }
+        .sim-setup-header h2 { font-size: 24px; }
+    }
+
+    @media print {
+        .top-panel, .btn-toggle-ans, h1 { display: none !important; }
+        .simulation-container, .tab-switcher { display: none !important; }
+        .table-container { display: block !important; }
+        body { background: white; }
+        .table-container { padding: 0; max-width: 100%; }
+        table { 
+            box-shadow: none; border: 1px solid #ccc; 
+            font-size: calc(12px * var(--scale)); 
+        }
+        th { display: none; }
+        .module-row td { 
+            background: #eee !important; color: #000 !important; 
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
+        .answer-content { 
+            display: block !important; border: none; background: transparent; 
+            padding: 0; margin-top: calc(5px * var(--scale)); 
+        }
+        .soru-no { 
+            color: #000 !important; border: 1px solid #999; 
+            background: #eee !important; 
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        }
+        td { 
+            padding: calc(6px * var(--scale)) calc(8px * var(--scale)); 
+            border: 1px solid #ccc;
+        }
+        td ul { padding-left: calc(15px * var(--scale)); }
+        td li { margin-bottom: calc(3px * var(--scale)); font-size: calc(11px * var(--scale)); }
+        @page { size: A4 portrait; margin: 10mm; }
+    }
+
+/* PWA / iPhone uyarlaması */
+html { -webkit-text-size-adjust: 100%; }
+body { min-height: 100vh; padding-bottom: env(safe-area-inset-bottom); }
+button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+@media (max-width: 640px) {
+  .top-panel { padding: 9px 10px; gap: 9px; position: sticky; top: 0; }
+  .tab-switcher { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .tab-btn { padding: 11px 8px; font-size: 13px; }
+  .control-group { max-width: 100%; flex-wrap: wrap; justify-content: center; }
+  .table-container { padding: 10px 8px 24px; overflow-x: auto; }
+  table { min-width: 560px; }
+  .simulation-container { padding: 16px 10px 30px; }
+  .sim-option-btn { min-width: 0; width: 100%; padding: 17px 14px; }
+  .sim-card { padding: 20px 16px; border-radius: 16px; }
+  .sim-question { font-size: 17px; line-height: 1.55; }
+  .sim-answer { font-size: 15px; line-height: 1.6; }
+  .sim-card-actions button, .sim-show-answer-btn, .sim-start-btn { min-height: 48px; }
+}
+@media (display-mode: standalone) { .top-panel { padding-top: max(9px, env(safe-area-inset-top)); } }
+
+</style>
+</head>
+<body>
+
+<div class="top-panel">
+    <div class="tab-switcher">
+        <button class="tab-btn active" data-tab="table" onclick="switchTab('table')">📋 Tablo</button>
+        <button class="tab-btn" data-tab="simulation" onclick="switchTab('simulation')">🎯 Simülasyon</button>
+    </div>
+
+    <div class="control-group" data-tab-only="table">
+        <button class="btn-filter active" onclick="filterTable('all', this)">Tümü</button>
+        <button class="btn-filter" onclick="filterTable('K', this)">Kıdemsiz (K)</button>
+        <button class="btn-filter" onclick="filterTable('U', this)">Uzmanlığa Yakın (U)</button>
+    </div>
+
+    <div class="control-group">
+        <span>Boyut:</span>
+        <div class="size-controls">
+            <button class="btn-size-ctrl" onclick="changeScale(-0.1)" id="btn-min" title="Küçült">−</button>
+            <div class="scale-display" id="scaleDisplay">%100</div>
+            <button class="btn-size-ctrl" onclick="changeScale(0.1)" id="btn-plus" title="Büyüt">+</button>
+        </div>
+    </div>
+
+    <div class="control-group" data-tab-only="table">
+        <button id="globalToggleBtn" class="btn-action" onclick="toggleAllAnswers()" data-showing="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Tüm Cevapları Göster
+        </button>
+        <button class="btn-print" onclick="window.print()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            PDF / Yazdır
+        </button>
+    </div>
+</div>
+
+<div class="table-container" id="tableContainer">
+    <table id="soruTablosu">
+        <thead><tr><th>No</th><th>Soru & Cevap</th></tr></thead>
+        <tbody>
+            <!-- MODÜL 1 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 1: Preoperatif Değerlendirme ve Anestezi Tekniği Seçimi</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K1</td><td><div class="soru-metni"><strong>Ortopedik hastanın preop değerlendirmesinde hangi başlıklara özellikle dikkat edilir? Romatoid artrit ve osteoartrit hastasında havayolu ve nöroaksiyel açıdan ne beklersiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Havayolu; hareket ve pozisyon; opioid ve antikoagülan kullanımı.</li><li>Romatoid artrit: kısıtlı boyun hareketi ve ağız açıklığı, atlantoaksiyel instabilite, krikoaritenoid tutulum.</li><li>Osteoartrit: nöroaksiyelde zorluk, paramedian yaklaşım.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K2</td><td><div class="soru-metni"><strong>Ortopedik cerrahi kardiyak risk açısından hangi gruptadır? Bu hastalarda fonksiyonel kapasite neden zor değerlendirilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Orta risk (%1–5).</li><li>Hareket kısıtlılığı nedeniyle efor kapasitesi değerlendirilemez.</li><li>Riskli hastada farmakolojik stres testi ve SFT gerekebilir; test yalnız yönetimi değiştirecekse.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K3</td><td><div class="soru-metni"><strong>Kronik opioid, ACEI/ARB ve kronik steroid kullanan hastada preop ilaç yönetimi nasıl olmalıdır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Opioid ani kesilmez; elektifte ağrı uzmanıyla azaltma düşünülebilir.</li><li>ACEI/ARB ameliyat sabahı kesilebilir; intraop hipotansiyon azalır.</li><li>Kronik steroidle perioperatif replasman gerekebilir.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K4</td><td><div class="soru-metni"><strong>Rejyonel anestezi planlanan hastanın fizik muayenesinde neye bakarsınız? Nörolojik muayeneyi neden kaydedersiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>İğne ve kateter bölgesinde enfeksiyon ve anatomik bozukluk.</li><li>Önceden var olan defisitin kaydı.</li><li>Neden: önceden defisit varsa sinir hasarı riski artar; postop değerlendirme için başlangıç kaydı gerekir.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K5</td><td><div class="soru-metni"><strong>Rejyonel anestezinin genel anesteziye üstünlüklerini sayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Hızlı rehabilitasyon ve taburculuk, daha iyi analjezi, daha az PONV.</li><li>Daha az solunum ve kardiyak depresyon, daha iyi perfüzyon, daha az kan kaybı.</li><li>Daha az enfeksiyon ve tromboemboli.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K6</td><td><div class="soru-metni"><strong>Rejyonel anestezinin kontrendikasyonları nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Antikoagülasyon, iğne bölgesinde enfeksiyon, önceden var olan sinir hasarı veya hastalığı, hasta reddi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U1</td><td><div class="soru-metni"><strong>Uzun süreli romatoid artriti olan 68 yaşında kadın total diz protezi için geliyor. Ağız açıklığı kısıtlı, boynunu hareket ettirince ellerinde karıncalanma tarif ediyor. Değerlendirmeniz ve anestezi planınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Atlantoaksiyel instabilite şüphesi; boyun hareketinden kaçınılır, görüntüleme (Modül 3).</li><li>Zor havayolu beklentisi: video laringoskop veya uyanık fiberoptik, küçük tüp.</li><li>Rejyonel anestezi havayolu manipülasyonunu önler; ancak havayolu sedasyonla bile tıkanabilir.</li><li>Steroid replasmanı ve kardiyopulmoner değerlendirme.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U2</td><td><div class="soru-metni"><strong>Diz artrozu nedeniyle yürüyemeyen, diyabetik ve hipertansif hasta; efor kapasitesi bilinmiyor. Preop kardiyak değerlendirmeyi nasıl yaparsınız? Hangi durumda ileri test istersiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Orta riskli cerrahi; efor kapasitesi değerlendirilemiyor.</li><li>Riskli hastada farmakolojik stres testi gerekebilir.</li><li>Test yalnız sonucu yönetimi değiştirecekse istenir (Modül 5).</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U3</td><td><div class="soru-metni"><strong>Kronik bel ağrısı nedeniyle uzun süredir yüksek doz opioid kullanan hasta kalça protezi için geliyor. Preop, intraop ve postop planınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Opioid toleransı ve hiperaljezi beklenir; ilaç kesilmez.</li><li>Preop ağrı uzmanıyla değerlendirme.</li><li>Postop planı önceden: rejyonel ve multimodal analjezi (Modül 5, 16).</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U4</td><td><div class="soru-metni"><strong>Diyabetik nöropatisi olan hastaya ayak cerrahisi için popliteal blok planlanıyor. Yaklaşımınız nedir? Postop yeni defisit gelişirse ne yaparsınız?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Önceden var olan defisit blok ile birlikte sinir hasarı riskini artırır.</li><li>Bloktan önce ayrıntılı muayene ve kayıt; risk ve yarar hastayla konuşulur.</li><li>Postop yeni defisitte muayene kaydedilir, cerrahi ekiple değerlendirilir ve izlenir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U5</td><td><div class="soru-metni"><strong>Bir cerrah "blok zaman kaybı, genel anestezi yapalım" diyor. Rejyonel anestezinin yararlarını ve kanıtın sınırlarını nasıl savunursunuz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Rehabilitasyon, analjezi, PONV, kan kaybı ve tromboemboli üzerine yararlar.</li><li>Mortaliteye etkisi belirsiz.</li><li>Sınırlar: kontrendikasyonlar ve uygun olmayan cerrahi bölgeler.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U6</td><td><div class="soru-metni"><strong>Antikoagülan kullanan ve periferik nöropatisi olan iki farklı hasta düşünün. Teknik seçiminiz her birinde nasıl değişir? "Bir tekniğin kontrendikasyonu diğerini dışlamaz" ilkesini açıklayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Antikoagülasyonda nöroaksiyel ve derin pleksus blokları uygun olmayabilir, yüzeyel periferik blok uygun olabilir.</li><li>Periferik nöropatide nöroaksiyel blok daha güvenli olabilir.</li><li>Seçim hasta, cerrahi ve antikoagülan planına göre bireyselleştirilir.</li></ul></div></td></tr>
+
+            <!-- MODÜL 2 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 2: Ortopedik Cerrahide Pozisyon</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K7</td><td><div class="soru-metni"><strong>Tüm pozisyonlarda uyulması gereken genel ilkeler nelerdir? En sık etkilenen periferik sinir hangisidir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Nötr pozisyon, yüzevel sinirlerin pedlenmesi, göz koruması, omuz ve dirsek fleksiyonu 90°'nin altında, sık kontrol.</li><li>Ulnar sinir: perioperatif sinir hasarlarının yaklaşık dörtte biri.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K8</td><td><div class="soru-metni"><strong>Beach chair pozisyonunda kol ile beyin arasındaki basınç farkını nasıl hesaplarsınız? Bu pozisyonun hemodinamik sorunları nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kalbin üzerindeki her 1 cm için yaklaşık 0,75 mmHg; 20 cm için yaklaşık 15 mmHg.</li><li>Venöz göllenme, hipotansiyon, kalp debisinde düşme.</li><li>Hava embolisi riski.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K9</td><td><div class="soru-metni"><strong>Beach chair'deki hipotansif-bradikardik olay nedir, mekanizması nedir, hangi ilaçlar hazır olmalıdır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ani hipotansiyon ve bradikardi; %24'e kadar; asistoliye ilerleyebilir.</li><li>Ventrikül dolumunun azalmasıyla Bezold-Jarisch refleksi.</li><li>Efedrin, atropin.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K10</td><td><div class="soru-metni"><strong>Lateral dekübit pozisyonda nelere dikkat edersiniz? Aksiller rulonun amacı nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kollar nötr, 90°’nin altında; aksiller rulo brakiyal pleksus ve aksiller arteri korur.</li><li>Havayolu supin pozisyonda güvenceye alınır; boyun nötr.</li><li>Alttaki bacakta peroneal ve safen sinir pedlenir; göz koruması.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K11</td><td><div class="soru-metni"><strong>Prone pozisyonda abdomen neden serbest bırakılır? Kollar ve gözler nasıl korunur?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Abdominal bası VCI'yi sıkıştırır: epidural venöz kanama artar, kalp debisi düşer, tromboz riski artar.</li><li>Kollar 90°’nin altında, hafif iç rotasyonda; dirsekte ulnar sinir korunur.</li><li>Gözler kapalı, yüz desteği göze bası yapmamalı.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K12</td><td><div class="soru-metni"><strong>Traksiyon masasında sağlam bacakta hangi komplikasyon gelişebilir, neden?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kompartman sendromu.</li><li>Neden: lateral baldırın destek direğine basısı ve yüksek pozisyonda göreceli hipoperfüzyon.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U7</td><td><div class="soru-metni"><strong>Beach chair'de omuz artroskopisi, interskalen blok ve genel anestezi. Koldan ölçülen KB 90/50 mmHg, baş kalpten yaklaşık 25 cm yukarıda. Değerlendirmeniz ve yönetiminiz nedir? Beyin oksimetresi kullanımının kanıtını tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Koldaki OAB yaklaşık 63 mmHg; 25 cm fark yaklaşık 19 mmHg; beyin seviyesinde OAB yaklaşık 44 mmHg.</li><li>Beyin hipoperfüzyonu riski; hipotansiyon ile beyin desatürasyonu ilişkisi bildirilmiş.</li><li>KB beyin seviyesine göre değerlendirilir ve düzeltilir.</li><li>Beyin oksimetresi: desatürasyon gösterilmiş, ancak kötü sonuçla ilişkisi net değil.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U8</td><td><div class="soru-metni"><strong>Beach chair'de, interskalen blok ve sedasyon altındaki hastada pozisyon verildikten birkaç dakika sonra KB ve nabız aniden düşüyor. Ayırıcı tanınız ve tedaviniz nedir? Önlem olarak ne yapılabilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Önce HBO düşünülür: pozisyon sonrası ani başlangıç, Bezold-Jarisch refleksi.</li><li>Ayırıcı tanı: hava embolisi, venöz göllenmeye bağlı hipotansiyon; interskalen blok sonrası lokal anestezik sistemik toksisitesi.</li><li>Efedrin veya atropin; gecikirse asistoli riski.</li><li>Önlem: insizyon öncesi ondanestron veya metoprolol; epinefrin, fentanil, propofol ve deksmedetomidin riskle ilişkili.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U9</td><td><div class="soru-metni"><strong>Lateral pozisyonda posterior kalça protezi sonrası hasta alttaki kolunda uyuşma ve güçsüzlük tarif ediyor. Olası nedenler nelerdir? Bu nasıl önlenirdi?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Aksiller rulo eksik veya yanlış yerde: brakiyal pleksus ve aksiller arter basısı.</li><li>Kol abdüksiyonu veya fleksiyonu 90°'yi aşmış olabilir.</li><li>Önleme: doğru yerleşimli aksiller rulo, nötr kol ve boyun, sık kontrol.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U10</td><td><div class="soru-metni"><strong>Prone pozisyonda lomber füzyonda kanama beklenenden fazla ve havayolu basınçları yüksek. Pozisyonla ilişkili nedenleri ve yaklaşımınızı anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Abdominal bası: VCI kompresyonu, epidural venöz kanama artışı, kalp debisinde düşüş.</li><li>Göğüs ve pelvis desteklerinin yeri kontrol edilir, abdomen serbestleştirilir.</li><li>Serbest abdomen venöz basıncı düşürür ve kanamayı azaltır.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U11</td><td><div class="soru-metni"><strong>Traksiyon masasında 3 saat süren femur çivilemesi sonrası hasta sağlam bacağında şiddetli baldır ağrısı tarif ediyor. Ayırıcı tanınız ve yaklaşımınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Sağlam bacakta kompartman sendromu öncelikli.</li><li>Neden: destek direğine baldır basısı ve göreceli hipoperfüzyon.</li><li>Ortopedi hemen çağrılır; kompartman basıncı ölçümü ve gerekirse fasiyotomi.</li><li>Ayırıcı tanıda derin ven trombozu.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U12</td><td><div class="soru-metni"><strong>Postop ulnar sinir hasarı saptanan hastada pozisyonun rolünü, önleme yöntemlerini ve kaydın önemini tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ulnar sinir hasarı sıktır, ancak çoğunlukla pozisyona bağlanamaz.</li><li>Önleme: dirsek pedlemesi, kol 90°’nin altında, prone’da dirsekte koruma.</li><li>Önceden var olan defisitin preop kaydı ve pozisyon kontrolünün belgelenmesi.</li></ul></div></td></tr>
+
+            <!-- MODÜL 3 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 3: Romatolojik Hasta</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K13</td><td><div class="soru-metni"><strong>RA hastasında havayolunu etkileyen patolojiler nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Servikal omurga tutulumu ve atlantoaksiyel instabilite.</li><li>TME tutulumu, kısıtlı ağız açıklığı.</li><li>Krikoaritenoid artrit, larinks deviasyonu.</li><li>Sedasyonla bile üst havayolu tıkanabilir.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K14</td><td><div class="soru-metni"><strong>RA hastasında servikal instabiliteyi nasıl tararsınız? Nötr lateral grafinin sınırı nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Fleksiyon-ekstansiyon lateral grafiler; instabilite ve baziler invajinasyon için MR.</li><li>Nötr lateral grafi bilinen subluksasyonların %48'ini kaçırır.</li><li>En riskli grup: el ve ayakta eroziv deformite.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K15</td><td><div class="soru-metni"><strong>RA ve SLE hastalarında kardiyak risk neden yüksektir? Efor kapasitesi değerlendirilemeyen hastada ne yaparsınız?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kronik inflamasyon aterosklerozu hızlandırır; risk diyabete eşdeğer, geleneksel risk faktörlerinden bağımsız.</li><li>Hasta 4 MET'i gösteremez.</li><li>Farmakolojik stres testi; eko iskemi bilgisi vermez.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K16</td><td><div class="soru-metni"><strong>Ankilozan spondilitte solunum fizyolojisi nasıl değişir? Bunun anestezi açısından iki önemli sonucu nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kostovertebral füzyon ve torakal ankiloz restriktif fizyoloji yapar; hasta diyaframa bağımlı solur.</li><li>İnterskalen bloğa bağlı diyafram felci tolere edilemeyebilir.</li><li>Postop ileus veya distansiyon diyaframı iterek solunumu bozar.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K17</td><td><div class="soru-metni"><strong>Lupus antikoagülanı aPTT'yi uzatır; bu hasta kanamaya mı yoksa trombozuna mı eğilimlidir? Açıklayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Tromboz.</li><li>Lupus antikoagülanı laboratuvarda fosfolipide bağımlı testleri uzatır, vücutta protrombotiktir.</li><li>Üçlü pozitiflikte VTE riski en yüksektir.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K18</td><td><div class="soru-metni"><strong>Kronik steroid, metotreksat ve biyolojik ajan kullanan hastada ilaçları nasıl yönetirsiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Steroid: ameliyat günü olağan doz; orta stresli cerrahide ek hidrokortizon gerekebilir (Barash).</li><li>Sentetik ilaçlar, metotreksat dahil, devam.</li><li>Biyolojik ajan kesilir; doz aralığının sonuna planlanır, en erken 14 gün sonra yeniden başlanır.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U13</td><td><div class="soru-metni"><strong>25 yıllık RA öyküsü olan, ses kısıklığı tarif eden, ellerinde ağır deformite bulunan 70 yaşında kadın total diz protezi için geliyor. Preop değerlendirmeniz ve anestezi planınız nedir? Genel anestezi gerekirse havayolu stratejiniz ve ekstübasyon riskleriniz nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ses kısıklığı krikoaritenoid artriti düşündürür; preop fiberoptik laringoskopi veya SFT bilgi verebilir.</li><li>Eroziv deformite servikal tutulum için yüksek risk; semptom sorgulama, fleksiyon-ekstansiyon grafisi veya MR.</li><li>İlk tercih rejyonel anestezi.</li><li>Genel anestezide fiberoptik, boyun nötr, küçük tüp.</li><li>Entübasyon ödemi ekstübasyon sonrası havayolunu kapatabilir.</li><li>Kalp ve akciğer değerlendirmesi, steroid yönetimi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U14</td><td><div class="soru-metni"><strong>Kronik inflamatuvar hastalığı olan hasta neden "diyabetik eşdeğeri" kabul edilir? Yürüyemeyen RA hastasında kardiyak ve pulmoner değerlendirmeyi cerrahi bölgeye göre nasıl planlarsınız?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kronik inflamasyon aterosklerozu hızlandırır; risk geleneksel faktörlerden bağımsız.</li><li>4 MET gösterilemezse farmakolojik stres testi.</li><li>Pulmoner risk cerrahi bölgeye bağlı: ekstremite düşük, omurga yüksek; omurga cerrahisinde SFT.</li><li>RA'da interstisyel akciğer hastalığı %30–46.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U15</td><td><div class="soru-metni"><strong>İleri AS'li erkek hasta artroskopik rotator manşet tamiri için geliyor. Solunum fizyolojisini göz önünde tutarak anestezi ve analjezi planınızı anlatınız. Postop solunum riskini artıran başka ne vardır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Diyaframa bağımlı solunum; interskalen blok diyaframı felç eder ve tolere edilemeyebilir.</li><li>Diyafram koruyucu blok seçeneği veya genel anestezi.</li><li>Füze servikal omurgada fiberoptik entübasyon.</li><li>Beach chair’de boyun pozisyonu.</li><li>Postop ileus ve distansiyon riski; erken mobilizasyon.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U16</td><td><div class="soru-metni"><strong>Üçlü pozitif APS'li SLE hastası varfarin kullanıyor ve kalça protezi planlanıyor. Perioperatif antikoagülasyon ve anestezi tekniği planınızı tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Perioperatif tromboz, antikoagülasyona rağmen tromboz ve katastrofik APS riski.</li><li>Varfarinden heparin veya DMAH köprülemesi; antikoagüansız süre en kısa.</li><li>Köprüleme 24 saat önce kesilirse nöroaksiyel yapılabilir; kateter çekildikten 3 saat sonra yeniden başlanır.</li><li>Mekanik kompresyon, kısa turnike süresi.</li><li>Yoğun antikoagülasyonla hemartroz riski; ekipler arası ortak plan.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U17</td><td><div class="soru-metni"><strong>6 aydır günde 10 mg prednizolon kullanan RA hastası total kalça protezi sonrası derlenmede hipotansif. Ayırıcı tanınızda adrenal yetmezlik nerededir? Stres dozu tartışmasını iki kaynağın görüşüyle değerlendiriniz.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ayırıcı tanı: hipovolemi, kanama, yağ veya çimento embolisi, adrenal yetmezlik.</li><li>Steroid hipotalamus-hipofiz-adrenal eksenini baskılar; 6 ay ve 10 mg/gün düşük risk grubunda değildir.</li><li>Artroplasti kortizol ihtiyacını 17 kat artırır.</li><li>ACR/AAHKS: olağan doz yeterli; kanıtlanmış adrenal yetmezlikte stres dozu ile olağan doz arasında hemodinamik fark bulunmamıştır.</li><li>Barash: orta stresli cerrahide ek hidrokortizon; dirençli hipotansiyonda akut adrenal yetmezlik tedavisi (hidrokortizon 100 mg IV).</li></ul></div></td></tr>
+
+            <!-- MODÜL 4 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 4: Yaşlı Ortopedik Hasta</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K19</td><td><div class="soru-metni"><strong>Yaşlanma kalp-damar, solunum, böbrek ve karaciğer fizyolojisini nasıl değiştirir? Anestezik ilaç dozlarını neden azaltır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Santral sinir sistemi duyarlılığı artar, etki uzar; hiperkapni ve hipoksiye yanıt bozulur.</li><li>β-reseptör yanıtı azalır, ileti bozuklukları, sol ventrikül hipertrofisi ve diyastolik disfonksiyon, KB dalgalanması.</li><li>Göğüs duvarı sertliği, ventilasyon-perfüzyon uyumsuzluğu, solunum işinde artış.</li><li>Glomerüler filtrasyon ve karaciğer akımı azalır; ilaç atılımı yavaşlar.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K20</td><td><div class="soru-metni"><strong>Homeostenoz ve kırılganlık nedir? "Fit" yaşlı hasta nasıl tanımlanır? Kırılganlığı nasıl ölçersiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Homeostenoz: homeostazı korumak için rezervin giderek büyük kısmı harcanır; kalan rezerv azalır.</li><li>Kırılganlık: kas kütlesi, güç, denge ve yürümede azalma; birden çok bileşen.</li><li>Fit: üçten az ek hastalık, bağımsız yürüme, sosyal aktivite, kendi işlerini yönetme.</li><li>Klinik Kırılganlık Ölçeği veya Edmonton Kırılganlık Ölçeği.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K21</td><td><div class="soru-metni"><strong>Deliryumu tanımlayınız. Ortopedik cerrahide sıklığı nedir? Nasıl tararsınız? Risk faktörlerini ve önleme yollarını sayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Akut ve dalgalı mental değişiklik, dikkatsizlik, dağınık düşünce, bilinç değişikliği; hipoaktif veya hiperaktif.</li><li>Ortopedide %41.</li><li>CAM veya 3D-CAM ile tarama.</li><li>DELIRIUMS SPAC risk faktörleri; önleme: oksijen, elektrolit, riskli ilaçların kesilmesi, beslenme, erken mobilizasyon, etkin analjezi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K22</td><td><div class="soru-metni"><strong>POKD deliryumdan nasıl ayrılır? Rejyonel anestezi POKD'yi önler mi?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>POKD daha sinsi ve uzun süreli; bellek, duygudurum, uyku döngüsü.</li><li>Kalça kırığında %37; ilk yıl mortalitesi artar.</li><li>Rejyonel ve genel anestezi sonrası oranlar benzer.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K23</td><td><div class="soru-metni"><strong>Yaşlıda hangi analjezik ve sedatiflerden kaçınılır, neden? Hangi ajanlar tercih edilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Petidin ve benzodiazepinlerden kaçınılır.</li><li>Opioidler deliryum, konstipasyon ve solunum depresyonu yapar.</li><li>Parasetamol, böbreğe göre NSAİİ veya COX-2, multimodal ve periferik analjezi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K24</td><td><div class="soru-metni"><strong>Yaşlı ortopedik hastada beslenme neden önemlidir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Malnütrisyon morbidite, mortalite ve yatış süresi için bağımsız risk faktörü.</li><li>Travmada kalori ihtiyacı 2 katına çıkar; açlık negatif dengeyi derinleştirir.</li><li>Kalça kırığında takviye sonucu değiştirmemiştir; malnütrisyon kötü genel sağlığın göstergesidir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U18</td><td><div class="soru-metni"><strong>Diyastolik disfonksiyonu olan 84 yaşında hastaya spinal anestezi planlıyorsunuz. Fizyolojiyi temel alarak hipotansiyon riskini ve önleme stratejisini açıklayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Diyastolik disfonksiyonda dolum ön yüke bağımlıdır; sempatektomi ve venöz göllenme debiyi düşürür.</li><li>β-reseptör yanıtı azalmış, KB dalgalanması fazla.</li><li>Spinal öncesi sıvı bolusu ani KB düşüşünü azaltır.</li><li>Düşük doz ve yakın izlem; anestezik duyarlılık artmıştır.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U19</td><td><div class="soru-metni"><strong>Aynı yaşta iki hasta: biri bağımsız yaşayan ve günlük yürüyen, diğeri bakımevinde yatağa bağımlı ve malnütre. Homeostenoz kavramıyla perioperatif risklerini ve planlamanızı karşılaştırınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Homeostenoz: kırılgan hastada rezerv tükenmiş, küçük stres dekompansasyon yapar.</li><li>Fitlik kronolojik yaştan önemlidir; kırılganlık ölçekle belgelenir.</li><li>Kırılgan ve malnütre hastada deliryum, komplikasyon ve mortalite riski yüksek; beklentiler ve bakım geçişi planlanır.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U20</td><td><div class="soru-metni"><strong>Total diz protezinin 2. gecesinde 78 yaşındaki hasta ajite ve dezoryante. Sistematik yaklaşımınızı DELIRIUMS SPAC üzerinden anlatınız. Hangi ilaçlardan kaçınırsınız?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>DELIRIUMS SPAC ile nedenler taranır: ilaç, hipoksi, enfeksiyon, retansiyon, elektrolit, ağrı, uyku yoksunluğu.</li><li>Hipoksi ve metabolik nedenler önce düzeltilir.</li><li>Benzodiazepin ve petidinden kaçınılır.</li><li>Etkin, opioid azaltıcı analjezi ve mobilizasyon.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U21</td><td><div class="soru-metni"><strong>Hasta yakını "genel anestezi annemin hafızasını bozar mı, bölgesel olursa korunur mu?" diye soruyor. Kanıta dayalı yanıtınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Majör kardiyak dışı cerrahide rejyonel ve genel anestezi sonrası POKD oranları benzer.</li><li>POKD çok etkenlidir: nöroinflamasyon, hipoksemi, hipotansiyon, ilaçlar.</li><li>Rejyonel anestezinin yararı opioid ve sedatifi azaltmasından gelir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U22</td><td><div class="soru-metni"><strong>Yaşlı kalça artroplastisi hastası için deliryum riskini en aza indiren bir analjezi planı kurunuz. Epidural hasta kontrollü analjezinin yaşlıdaki avantaj ve dezavantajlarını tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Parasetamol, böbreğe göre NSAİİ, periferik blok veya infiltrasyon; opioid en az.</li><li>Benzodiazepin ve petidinden kaçınılır.</li><li>Epidural hasta kontrollü analjezi: iyi analjezi; ancak idrar sondası, bulantı, postüral hipotansiyon ve gecikmiş mobilizasyon.</li></ul></div></td></tr>
+
+            <!-- MODÜL 5 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 5: Komorbid Hasta</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K25</td><td><div class="soru-metni"><strong>Ortopedik cerrahi kardiyak riski hangi mekanizmalarla artırır? Talep iskemisi nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Doku hasarı ve ağrı → katekolamin → taşikardi, kontraktilite ve oksijen tüketiminde artış.</li><li>Talep iskemisi: tüketim ile perfüzyon uyumsuzluğu; komplikasyonların yarısı.</li><li>İnflamasyonla plak rüptürü, hiperkoagülabilite.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K26</td><td><div class="soru-metni"><strong>Fonksiyonel kapasiteyi nasıl değerlendirirsiniz? RCRI'nin bileşenlerini sayınız. Hangi hastada stres testi istersiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>MET: <4 kötü, iki kat merdiven 4–7 MET.</li><li>RCRI: iskemik kalp hastalığı, kalp yetmezliği, serebrovasküler hastalık, insülinli diyabet, kreatinin >2, yüksek riskli cerrahi.</li><li>Stres testi: ≥1 RCRI faktörü ve bilinmeyen veya kısıtlı efor kapasitesi; ortopedide çoğunlukla farmakolojik.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K27</td><td><div class="soru-metni"><strong>β-blokerin kardiyak koruyucu mekanizmaları nelerdir? Ameliyat günü başlanması neden önerilmez?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kalp hızı ve kontraktilite azalır; diyastol uzar, koroner perfüzyon artar; plak stabilizasyonu, aritmi eşiğinde artış.</li><li>Ameliyattan 24 saat içinde başlanması miyokard infarktüsünü azaltır ama inme ve mortaliteyi artırır; hipotansiyon ve hipoperfüzyon.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K28</td><td><div class="soru-metni"><strong>Obstrüktif uyku apnesinin patofizyolojisini anlatınız. Nasıl tararsınız? Obezite hipoventilasyon sendromunu ne düşündürür?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Uykuda farenks kollapsı, apne ve hipopne, hipoksi, sempatik aktivasyon, kronik kalp-damar hastalığı.</li><li>STOP-Bang (≥5 evet yüksek risk), Berlin, ASA listesi; boyun çevresi, BKİ, horlama.</li><li>OHS: BKİ ≥30, PaCO2 ≥45, yüksek bikarbonat, istirahat hipoksemisi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K29</td><td><div class="soru-metni"><strong>OUA'lı hastada hangi ilaçlar risklidir, neden? Anestezi tekniği seçiminiz ve postop izleminiz nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Tüm anestezik, sedatif ve opioidler farenks kollapsını artırır; benzodiazepin ve opioid özellikle riskli.</li><li>Zor havayolu hazırlığı, rezidüel blok kontrolü.</li><li>Mümkünse nöroaksiyel veya periferik blok; daha az solunum komplikasyonu.</li><li>Postop CPAP, derlenme ölçütlerinden sonra 60 dakika ek izlem, sürekli nabız oksimetrisi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K30</td><td><div class="soru-metni"><strong>Opiode bağlı hiperaljezi nedir? Kronik opioid kullanan hastada perioperatif analjezi planınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>OİH: opioide maruziyetle nosiseptif duyarlılaşma; 1 hafta içinde gelişebilir.</li><li>Preop doz azaltma (en az %50).</li><li>Multimodal, rejyonel, ketamin, gabapentinoid; uzun etkili opioidden kaçınma; azaltma planı.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U23</td><td><div class="soru-metni"><strong>Diz artrozu nedeniyle yürüyemeyen, insülin kullanan diyabetik, 3 yıl önce inme geçirmiş hasta total diz protezi için geliyor. Kardiyak risk değerlendirmenizi adım adım anlatınız. Koroner revaskülarizasyon ortopedik riski azaltır mı?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kapasite eklem nedeniyle değerlendirilemiyor.</li><li>RCRI: insülinli diyabet ve serebrovasküler hastalık = 2 faktör.</li><li>≥1 faktör ve bilinmeyen kapasite: farmakolojik stres testi düşünülür.</li><li>Revaskülarizasyon ortopedik riski azaltmaz; yalnızca uzun dönem risk için.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U24</td><td><div class="soru-metni"><strong>Kardiyoloji ameliyat sabahı yeni β-bloker başlamanızı öneriyor. Kanıtı tartışınız ve yanıtınızı gerekçelendiriniz.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ameliyat günü başlanan β-bloker miyokard infarktüsünü azaltır ama inme ve mortaliteyi artırır.</li><li>Ameliyat günü başlanmaz.</li><li>Endikasyon varsa en az 1 gün, ideal 1 hafta önce düşük doz uzun etkili ajan.</li><li>Kullanan hastada devam.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U25</td><td><div class="soru-metni"><strong>BKİ 42, boyun çevresi 46 cm, horlayan ve gündüz uykulu, tanısız hasta total kalça protezi için geliyor. Serum bikarbonatı yüksek. Preop, intraop ve postop planınızı fizyolojiye dayanarak anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Yüksek OUA riski; bikarbonat yüksekliği OHS'yi düşündürür.</li><li>Preop: tanı için cerrahiyi ertelemek gerekmez; ek hastalık optimizasyonu.</li><li>İntraop: zor havayolu hazırlığı; mümkünse nöroaksiyel anestezi; benzodiazepinden kaçınma; kısa etkili ajanlar; tam geri dönüş.</li><li>Postop: opioid azaltıcı multimodal analjezi, bazal infüzyon yok, CPAP, ek derlenme izlemi ve sürekli nabız oksimetrisi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U26</td><td><div class="soru-metni"><strong>Günde yüksek doz oksikodon kullanan kronik bel ağrılı hasta diz protezi sonrası derlenmede şiddetli ağrı tarif ediyor; morfin dozları etkisiz. Mekanizmayı ve yaklaşımınızı tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Tolerans ve OİH.</li><li>Opioid dozunu artırmak çözüm değildir.</li><li>Rejyonel teknik, ketamin, opioid dışı adjuvanlar.</li><li>Ağrı konsültasyonu; azaltma planı.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U27</td><td><div class="soru-metni"><strong>Buprenorfin kullanan hasta acil kalça kırığı cerrahisine geliyor. Farmakolojiyi temel alarak analjezi planınız anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Buprenorfin yüksek afiniteli parsiyel agonist, yavaş ayrılır; diğer opioidlerin etkisini azaltır.</li><li>Acil cerrahide devam ederek opioid dışı ve rejyonel analjezi artırılır.</li><li>Kalça kırığında periferik blok.</li><li>Ek opioid gerekirse daha yüksek doz ve izlem.</li></ul></div></td></tr>
+
+            <!-- MODÜL 6 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 6: Omurga ve Skolyoz Cerrahisi</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K31</td><td><div class="soru-metni"><strong>Omurga cerrahisi öncesi hangi sistemleri, nasıl değerlendirirsiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Havayolu ve servikal stabilite; uyanık veya uykuda entübasyon kararı önceden.</li><li>Solunum: restriktif hastalık, SFT, kan gazı.</li><li>Kalp: EKG, eko; kas distrofisinde kardiyak tutulum.</li><li>Nörolojik defisitin kaydı.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K32</td><td><div class="soru-metni"><strong>Omurga cerrahisinde kan kaybını artıran faktörler nelerdir? Kan koruma yöntemlerini sayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Dekortikasyon ve seviye sayısı; koagülopati (fibrinoliz, dilüsyon).</li><li>Abdominal bası ve epidural venler.</li><li>Otolog bağış, pozisyon, hücre kurtarma, TXA.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K33</td><td><div class="soru-metni"><strong>SSEP ve MEP hangi yolakları değerlendirir, hangi arterler bu yolakları besler? Anestezik ilaçlar bu sinyalleri nasıl etkiler?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>SSEP: dorsal kolon, posterior spinal arter.</li><li>MEP: motor yolaklar, anterior spinal arter.</li><li>Volatil, hiperkapni, hipoksi, hipotansiyon, hipotermi SSEP'i bozar; kas gevşetici MEP'i engeller.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K34</td><td><div class="soru-metni"><strong>Spinal şok ve otonomik hiperrefleksi nedir? Omurilik yaralanmasından sonra süksinilkolin neden tehlikelidir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Spinal şok: 3 haftaya kadar; T5 üstünde hipotansiyon, T1–T4 üstünde bradikardi; sıvı ve vazopresöre zayıf yanıt.</li><li>Otonomik hiperrefleksi: uyaranla paroksismal hipertansiyon ve refleks bradikardi.</li><li>48 saatten sonra asetilkolin reseptörü artışı; süksinilkolinle ağır hiperkalemi ve arrest.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K35</td><td><div class="soru-metni"><strong>Skolyoz kalp ve akciğeri nasıl etkiler? Preop vital kapasitenin önemi nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Restriktif hastalık; kronik hipoksi ve hiperkapni → pulmoner hipertansiyon → kor pulmonale.</li><li>Konjenital kalp hastalıkları eşlik edebilir.</li><li>VC <%40 postop ventilasyon olasılığı.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K36</td><td><div class="soru-metni"><strong>Venöz hava embolisinin bulguları ve tedavisi nedir? Postop görme kaybının en sık nedeni ve risk faktörleri nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>VHE: açıklanamayan hipotansiyon, end-tidal azot artışı, EtCO2'de ani düşüş.</li><li>Tedavi: alanı sıvıyla doldur, cerrahi alanı alçalt, kateterden aspirasyon, azot protoksiti kes, destek.</li><li>Görme kaybı: iskemik optik nöropati; erkek, obezite, Wilson çerçevesi, uzun süre, büyük kan kaybı, kolloid dışı sıvı.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U28</td><td><div class="soru-metni"><strong>14 yaşında Duchenne müsküler distrofili erkek, torakolomber skolyoz cerrahisine geliyor. Preop değerlendirmenizi ve anestezi planınızı tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kardiyak tutulum %50–70, ileti bozukluğu ve arrest riski; EKG ve eko.</li><li>Restriktif hastalık, aspirasyon riski; preop VC.</li><li>Süksinilkolinden kaçınılır (hiperkalemi); nondepolarizanlara duyarlılık.</li><li>Postop ventilasyon olasılığı yüksek.</li><li>Nöromonitörizasyon, arter ve santral kateter.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U29</td><td><div class="soru-metni"><strong>Prone pozisyonda 6 seviyeli posterior füzyonda kanama beklenenden fazla. Olası nedenleri sistematik olarak değerlendiriniz ve yaklaşımınızı anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Dekortikasyon ve seviye sayısı.</li><li>Abdominal bası, epidural venöz kanama; pozisyon kontrol edilir.</li><li>Koagülopati: PT ve aPTT ile yönlendirme.</li><li>Hızlı açıklanamayan hipotansiyonda majör damar yaralanması.</li><li>TXA, hücre kurtarma.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U30</td><td><div class="soru-metni"><strong>Skolyoz düzeltmesinde distraksiyon sonrası MEP sinyalleri kayboluyor. Adım adım yaklaşımınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Cerrahi durdurulur.</li><li>Kan basıncı normale veya normalin %20 üstüne çıkarılır.</li><li>Volatil azaltılır veya kesilir; kan gazıyla metabolik neden dışlanır.</li><li>Düzelmezse distraksiyon gevşetilir; uyandırma testi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U31</td><td><div class="soru-metni"><strong>3 hafta önce C6 düzeyinde tam omurilik yaralanması geçiren hasta servikal stabilizasyona geliyor. Havayolu, kas gevşetici, hemodinami ve ısı düzenlenmesi açısından planınızı anlatınız. Ameliyat sırasında ani hipertansiyon ve bradikardi gelişirse ne düşünür, ne yaparsınız?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Servikal stabilite ve havayolu planı cerrahla; nörolojik değerlendirme gerekiyorsa uyanık entübasyon.</li><li>48 saat geçtiği için süksinilkolin kontrendike.</li><li>Spinal şok döneminde hipotansiyon ve bradikardi; sıvıya dikkat.</li><li>Poikilotermi; aktif ısıtma.</li><li>Ani hipertansiyon ve bradikardi: otonomik hiperrefleksi; uyaranı kaldır, anesteziyi derinleştir, vazodilatör.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U32</td><td><div class="soru-metni"><strong>Uzun süren skolyoz cerrahisi sonrası ekstübasyon kararını hangi ölçütlere göre verirsiniz? Postop analjezi planınızı anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ventilasyon ölçütleri: nöromüsküler hastalık, VC <%35, sağ ventrikül yetmezliği, obezite, uyku apnesi, uzun cerrahi, toraks açılması, >30 mL/kg kan kaybı; yüz ve larinks ödemi.</li><li>Rezidüel opioid ve kas gevşetici; nörolojik durum.</li><li>Analjezi: multimodal, intratekal morfin, fasyal plan blokları, parasetamol, kısa süreli NSAİİ cerrahla konuşularak.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U33</td><td><div class="soru-metni"><strong>Prone pozisyonda 8 saatlik füzyon sonrası hasta görememekten yakınıyor. Ayırıcı tanınız, risk faktörleri ve önleme stratejileri nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ayırıcı tanı: iskemik optik nöropati (en sık), retinal arter oklüzyonu, beyin iskemisi.</li><li>Risk: erkek, obezite, Wilson çerçevesi, uzun anestezi, büyük kan kaybı, kolloid dışı sıvı, hipotansiyon, anemi.</li><li>Önleme: hipotansiyon ve anemiden kaçınma, süreyi kısaltma, göze bası olmaması.</li><li>Acil oftalmoloji konsültasyonu.</li></ul></div></td></tr>
+
+            <!-- MODÜL 7 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 7: Üst Ekstremite ve Omuz Cerrahisi</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K37</td><td><div class="soru-metni"><strong>"Double crush" nedir? Önceden sinir hasarı olan hastada blok kararını nasıl verirsiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Proksimalde hasarlı sinirin distaldeki ikinci hasara artmış duyarlılığı.</li><li>Karar hasta ve cerrahla, bireysel.</li><li>USG, uygun lokal anestezik, dikkatli pozisyon, seri nörolojik muayene.</li><li>Pleksopati veya ciddi servikal hastalıkta blok olmadan genel anestezi düşünülür.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K38</td><td><div class="soru-metni"><strong>İnterskalen blok neden diyafram parezisi yapar? Fizyolojik sonucu nedir? Diğer yan etkileri nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Frenik sinir blokajı; klasik interskalen blokta %100.</li><li>Karşı diyafram sağlamken %25 akciğer fonksiyonu kaybı; yardımcı ve interkostal kaslar destekler.</li><li>Karşı diyafram bozuksa solunum yetmezliği; iki taraflı blok yapılmaz.</li><li>Horner sendromu, ses kısıklığı.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K39</td><td><div class="soru-metni"><strong>Omuz cerrahisinde diyaframı koruyan blok seçenekleri nelerdir? Sınırları nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Superior trunkus bloğu: düşük hacim, diyafram korunur.</li><li>Anterior suprascapular: artroskopide interskalene eşdeğer.</li><li>Supraklaviküler: daha az ama anlamlı frenik felç, daha büyük hacim, pnömotoraks.</li><li>Posterior suprascapular + aksiller majör cerrahide yetersiz.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K40</td><td><div class="soru-metni"><strong>Beach chair'de supraglotik havayolunun avantaj ve dezavantajları nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Avantaj: spontan solunum, venöz dönüş korunur, daha az hipotansiyon.</li><li>Dezavantaj: cihaz yerinden çıkarsa veya solunum yetersizliğinde havayoluna erişim zor.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K41</td><td><div class="soru-metni"><strong>El ve önkol cerrahisi için blok seçenekleri nelerdir? İnterkostobrakiyal sinir neden önemlidir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Supraklaviküler, infraklaviküler, aksiller; ilk ikisi en güvenilir.</li><li>İnfraklavikülerde muskulokutanöz korunabilir, aksillerde ayrıca bloke edilir.</li><li>İnterkostobrakiyal sinir kolun iç yüzünü besler; turnike ağrısı için cilt altı infiltrasyon.</li><li>Bier bloğu: kısa cerrahi, postop analjezi yok.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K42</td><td><div class="soru-metni"><strong>Blokla taburcu edilen hastaya ne söylersiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Blok süresi ve ekstremitenin korunması.</li><li>Blok gece geçecekse yatmadan önce ağızdan analjezik.</li><li>Supraklaviküler veya infraklaviküler blokta 6–12 saat sonra pnömotoraks belirtileri; solunum sıkıntısında başvuru.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U34</td><td><div class="soru-metni"><strong>Proksimal humerus kırığı olan hasta acil cerrahiye geliyor. Muayenede deltoid üzerinde duyu kaybı var. Blok kararınızı ve hastaya ne anlatacağınızı tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Proksimal humerus kırığında aksiller sinir ve pleksus hasarı olabilir; deltoid üzerindeki duyu kaybı aksiller sinir defisitini düşündürür.</li><li>Bloktan önce ayrıntılı muayene ve kayıt.</li><li>Karar hasta ve cerrahla bireysel; double crush riski.</li><li>Hastaya: büyük omuz cerrahisinde sinir hasarı riski vardır, blokların bu riske belirgin katkısı gösterilmemiştir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U35</td><td><div class="soru-metni"><strong>Kronik obstrüktif akciğer hastalığı olan, BKİ 38 ve uyku apnesi hastası total omuz artroplastisine geliyor. Diyafram fizyolojisini temel alarak analjezi planınızı anlatınız. Bloğu uzatmak için adjuvan ekler misiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Düşük fonksiyonel rezerv; interskalen bloğa bağlı diyafram parezisi klinik önem taşıyabilir.</li><li>Diyafram koruyucu seçenek: superior trunkus veya anterior suprascapular blok.</li><li>Supraklavikülerde de frenik felç olabilir.</li><li>Adjuvan parezinin süresini de uzatır; dikkatli olunmalıdır.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U36</td><td><div class="soru-metni"><strong>Beach chair'de omuz artroskopisi için tek başına blok, genel anestezi ve kombine teknik arasında nasıl seçim yaparsınız? Havayolu seçiminizi gerekçelendiriniz.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Tek başına blok: dikkatli pozisyon ve sedasyonla mümkün.</li><li>Kombine: havayolu güvenliği, kas gevşemesi, blok dışı cerrahi alan.</li><li>Supraglotik havayolu: spontan solunum ve venöz dönüş avantajı; erişim zorluğu dezavantajı.</li><li>Ağır ek hastalık ve diyafram rezervi kararı etkiler.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U37</td><td><div class="soru-metni"><strong>Ayaktan el bileği kırığı cerrahisi sonrası blokla taburcu olan hasta gece 03'te şiddetli ağrıyla acile geliyor. Ne oldu? Bu nasıl önlenirdi? Taburculukta başka hangi uyarı kritiktir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Blok etkisinin aniden geçmesine bağlı şiddetli ağrı.</li><li>Önleme: blok süresinin önceden anlatılması ve yatmadan önce ağızdan analjezik.</li><li>Kritik uyarı: supraklaviküler veya infraklaviküler blokta gecikmiş pnömotoraks belirtileri.</li><li>Ekstremitenin blok geçene kadar korunması.</li></ul></div></td></tr>
+
+            <!-- MODÜL 8 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 8: Alt Ekstremite</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K43</td><td><div class="soru-metni"><strong>Kalça ve diz artroplastisinde nöroaksiyel anestezinin olası yararları nelerdir? Kanıtın sınırı nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Veritabanı çalışmasında daha düşük mortalite, tromboemboli, kan kaybı, transfüzyon, yatış.</li><li>Taburculuk hazırlığı ve aynı gün taburculuk.</li><li>Sistematik derleme ve randomize çalışmada morbidite ve mortalitede fark yok.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K44</td><td><div class="soru-metni"><strong>Artroplasti sırasında embolizasyon nasıl olur ve hangi organları nasıl etkiler? "Organ rezervi" kavramını açıklayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kanal basınçlanınca yağ, ilik, çimento ve kemik dolaşıma geçer.</li><li>Pulmoner damar direncinde artış, sağ kalp yüklenmesi, aritmi, hipotansiyon; venöz staz ve tromboz; beyin ve böbrek mikroembolisi.</li><li>Klinik tablo embolik yük ile organ rezervi dengesiyle belirlenir; pulmoner hipertansiyonda mortalite 4 kat.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K45</td><td><div class="soru-metni"><strong>Kalça cerrahisinde analjezi seçeneklerini ve her birinin dezavantajını sayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Lumbal pleksus: güçlü ama derin; antikoagülasyonda kaçınılır, intratekal veya damar içi enjeksiyon riski.</li><li>Femoral: kuadriseps güçsüzlüğü, düşme.</li><li>Fasiyal plan blokları: motor koruyucu, kanıt çelişkili.</li><li>İnfiltrasyon: bloklardan üstün değil.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K46</td><td><div class="soru-metni"><strong>Kalça artroskopisinin hayatı tehdit eden komplikasyonu nedir? Nasıl tanınır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Karın içine sıvı kaçağı; abdominal kompartman sendromu ve kollaps.</li><li>Risk: iliopsoas tenotomisi, yüksek pompa basıncı.</li><li>Şiddetli karın veya pelvis ağrısı ve instabilite; FAST ile tanı.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K47</td><td><div class="soru-metni"><strong>Femoral blok ile adduktor kanal bloğunu karşılaştırınız. Arka diz ağrısı için seçenekler nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Benzer analjezi; femoralde %80'e kadar kuadriseps güçsüzlüğü, adduktor kanalda güç korunur.</li><li>Siyatik: etkili ama düşük ayak, düşme, peroneal felcin maskelenmesi.</li><li>Seçici tibial blok ve IPACK motor koruyucu alternatifler.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K48</td><td><div class="soru-metni"><strong>Ayaktan spinal anestezide hangi lokal anestezikleri tercih edersiniz, neden? Ayak cerrahisinde blok seçenekleri nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Lidokain GNS nedeniyle nadiren; %2 kloroprokin tercih edilebilir; bupivakain uzun etkili.</li><li>Ayak: ayak bileği bloğu veya popliteal siyatik ± safen.</li><li>Deksametazon analjeziyi 24 saatin ötesine uzatır.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U38</td><td><div class="soru-metni"><strong>Ağır aort stenozu olan 80 yaşında hasta total kalça artroplastisine geliyor. Fizyolojiye dayanarak anestezi tekniği, hemodinamik hedefler, analjezi ve kan koruma planınızı anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Sabit çıkış obstrüksiyonu; art yük düşüşü koroner perfüzyonu bozar.</li><li>Nöroaksiyel sempatektomi tehlikeli; sıvı bolusu ve epidural kateterden yavaş titrasyon veya dikkatli genel anestezi.</li><li>Hipotansiyon ve taşikardiden kaçınma; invaziv izlem.</li><li>Analjezi: motor koruyucu fasiyal plan blokları veya femoral blok; antikoagülasyonda lumbal pleksustan kaçınma.</li><li>TXA, normotermi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U39</td><td><div class="soru-metni"><strong>Cerrah, sağlıklı görünen ama uyku apneli, obez ve geçirilmiş pulmoner emboli öyküsü olan hastada eş zamanlı iki taraflı TDA önermektedir. Embolik yük ve organ rezervi kavramlarıyla görüşünüzü savununuz.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>İki taraflı cerrahide embolik yük iki kat; ARDS, tromboemboli, deliryum, böbrek komplikasyonu artar.</li><li>Obezite, uyku apnesi ve geçirilmiş pulmoner emboli sağ ventrikül disfonksiyonunu düşündürür; organ rezervi düşük.</li><li>Pulmoner hipertansiyon taraması (ekokardiyografi).</li><li>Eş zamanlı iki taraflı TDA için ileri yaş ve ASA III ve üzeri genellikle dışlanır; aşamalı cerrahi önerilir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U40</td><td><div class="soru-metni"><strong>Kalça artroskopisi sonrası derlenmede hasta hipotansif, taşikardik ve karını gergin. Ayırıcı tanınız ve yaklaşımınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Karın içine sıvı kaçağı ve abdominal kompartman sendromu.</li><li>Ayırıcı tanı: kanama, hipovolemi, pulmoner emboli.</li><li>FAST ile tanı; cerrahi ekip çağrılır.</li><li>Tedavi: gözlem, diürez, ağır olguda laparotomi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U41</td><td><div class="soru-metni"><strong>TDA sonrası 1. gün hasta fizyoterapide düşüyor. Analjezi planındaki olası nedenleri tartışınız ve ideal planı tarif ediniz. Büyük valgus düzeltmesi yapılan hastada siyatik blok neden sorunludur?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Femoral blokta kuadriseps güçsüzlüğü ve düşme.</li><li>Siyatik blokta düşük ayak.</li><li>İdeal: adduktor kanal + IPACK veya seçici tibial blok, multimodal analjezi.</li><li>Valgus düzeltmesinde peroneal sinir felci riski; siyatik blok tanıyı geciktirir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U42</td><td><div class="soru-metni"><strong>Ayaktan ÖÇB rekonstrüksiyonu için anestezi ve analjezi planınızı gerekçeleriyle anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kısa-orta etkili spinal (kloroprokin) veya genel anestezi + antiemetik profilaksi.</li><li>Femoral blok multimodalden üstün değil, taburculuğu uzatır, kuadriseps güçsüzlüğünü maskeleyebilir.</li><li>Adduktor kanal bloğu benzer analjezi, güç korunur; IPACK yararlı olabilir.</li><li>Multimodal analjezi ve ekstremite koruma eğitimi.</li></ul></div></td></tr>
+
+            <!-- MODÜL 9 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 9: Kalça Kırığı</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K49</td><td><div class="soru-metni"><strong>Kalça kırığının prognozu nedir? Sonucu en iyi öngören faktör hangisidir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>1 yıllık mortalite %12–25.</li><li>İlk yılı atlatanlarda yaşam beklentisi yaşıtlarına yaklaşır; 5 yıllık sağkalım %50.</li><li>En iyi öngörücü kırık öncesi genel sağlık (fitlik).</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K50</td><td><div class="soru-metni"><strong>Kalça kırığında cerrahi ne zaman yapılmalıdır? Gecikmenin zararı nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>48 saat içinde; hastane mortalitesi ve bası yarası azalır.</li><li>2 günden fazla gecikmede 1 yıllık mortalite iki kat.</li><li>Erken cerrahi ağrıyı ve hareketsizliği sonlandırır.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K51</td><td><div class="soru-metni"><strong>Femur boynu kırığında cerrahi seçenekler nelerdir? Bunların anestezi açısından farkı nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Yer değiştirmemiş: vidalama.</li><li>Yer değiştirmiş: fit hastada total artroplasti, fit olmayanda hemiartroplasti.</li><li>Artroplasti, özellikle çimentolu, embolik yük ve çimento reaksiyonu riski taşır.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K52</td><td><div class="soru-metni"><strong>Kalça kırığında spinal ve genel anestezi arasında mortalite ve deliryum açısından fark var mıdır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kanıtlanmış mortalite farkı yok.</li><li>REGAIN'de ölüm veya yürüyememe ve deliryumda anlamlı fark yok.</li><li>Nöroaksiyel anestezi yatışı kısaltabilir.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K53</td><td><div class="soru-metni"><strong>Kalça kırığında hangi periferik bloklar kullanılır? Bloğun yaşlı hastaya yararları nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Fasya iliaka, suprainguinal fasya iliaka, femoral, PENG, kuadratus lumborum, lumbal pleksus.</li><li>Lumbal pleksustan antikoagülasyonda kaçınılır.</li><li>Yarar: opioid ve yan etkilerinde azalma, erken mobilizasyon, kısa yatış; deliryum riskinde azalma.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K54</td><td><div class="soru-metni"><strong>Bölgesel anestezi DVT riskini hangi mekanizmalarla azaltır? Tromboprofilaksinin yerine geçer mi?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ekstremite kan akımında artış ve venöz tonusta azalma.</li><li>Viskozite ve pıhtılaşmada değişiklik.</li><li>Katekolamin ve kortizol yanıtında azalma.</li><li>Tromboprofilaksinin yerine geçmez.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U43</td><td><div class="soru-metni"><strong>Bakımevinde yaşayan, demanslı, malnütre 91 yaşında hasta yer değiştirmiş femur boynu kırığıyla geliyor. Dahiliye "önce kardiyak ve beslenme optimizasyonu" öneriyor. Yaklaşımınızı kanıtla savununuz.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kırılgan hasta, kötü prognoz grubunda.</li><li>48 saat içinde cerrahi mortaliteyi ve bası yarasını azaltır; gecikme 1 yıllık mortaliteyi artırır.</li><li>Beslenme takviyesi sonucu değiştirmemiştir.</li><li>Yalnızca hızla düzeltilebilir sorunlar için kısa erteleme; fit olmayan hastada hemiartroplasti.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U44</td><td><div class="soru-metni"><strong>Aynı gün iki hasta: biri fit ve aktif 72 yaşında, diğeri ev içinde yürüyebilen 88 yaşında. İkisi de yer değiştirmiş femur boynu kırığı. Cerrahi seçenekler ve anestezi riskleri açısından karşılaştırınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Fit hastada total artroplasti; fit olmayanda hemiartroplasti.</li><li>Yaşlı ve kırılgan hastada rezerv düşük; deliryum, solunum komplikasyonu, çimento reaksiyonu riski yüksek.</li><li>Anestezi planı fitliğe göre bireyselleştirilir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U45</td><td><div class="soru-metni"><strong>Hasta yakını "bölgesel anestezi daha güvenli değil mi?" diye soruyor. Mortalite, deliryum, solunum komplikasyonu ve DVT açısından kanıta dayalı yanıtınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Mortalitede kanıtlanmış fark yok; REGAIN'de ölüm veya yürüyememe ve deliryumda fark yok.</li><li>Solunum komplikasyonları genel anestezide daha sık.</li><li>DVT bölgesel anestezide daha az.</li><li>Kısa dönem konfüzyon bazı çalışmalarda daha az; uzun dönemde fark yok.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U46</td><td><div class="soru-metni"><strong>Acil serviste şiddetli ağrısı olan, deliryumda ve klopidogrel kullanan hasta için analjezi ve anestezi planınızı anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Acil analjezi: periferik blok (fasya iliaka); yüzeyel blok antiplatelet kullanımında daha güvenlidir; lumbal pleksustan kaçınılır.</li><li>Klopidogrel nöroaksiyel bloktan 5–7 gün önce kesilmelidir; beklemek cerrahiyi geciktirir.</li><li>Genel anestezi veya cerrahi zamanlaması ekiplerin ortak kararı; 48 saat hedefi.</li><li>Deliryumda opioid ve benzodiazepin azaltılır, nedenler taranır.</li></ul></div></td></tr>
+
+            <!-- MODÜL 10 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 10: Pediatrik Ortopedik Anestezi</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K55</td><td><div class="soru-metni"><strong>Çocuklarda genel anestezi altında blok yapmak güvenli midir? Kanıt nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kabul gören uygulama.</li><li>Fransa: 24.409 blokta majör komplikasyon yok.</li><li>PRAN: >100.000 blokta kalıcı defisit yok; ağır toksisite 10.000'de 0,76, çoğu bebekte.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K56</td><td><div class="soru-metni"><strong>Çocuklarda nöroaksiyel blok neden daha az hipotansiyon yapar ve neden daha kısa sürer?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>&lt;8 yaşta bacak ve splanknik kan hacmi az, damar yatağı vazodilate.</li><li>BOS hacmi 4 mL/kg ve hızlı dönüşüm; az epidural yağ; miyelinizasyon 12 yaşa kadar eksik.</li><li>Tek başına spinal &lt;90 dakika.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K57</td><td><div class="soru-metni"><strong>Pediatrik bupivakain dozu nasıl hesaplanır? Genel anestezi altında lokal anestezik toksisitesi nasıl tanınır ve nasıl önlenir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kiloya göre; epinefrinli bupivakain 2,5–3 mg/kg; infiltrasyonla toplanır.</li><li>Genel anestezide santral bulgular görülmez, test dozu güvenilmez; EKG'de T dalgası değişikliği ilk bulgu olabilir.</li><li>Bölünmüş doz, aspirasyon, EKG izlemi, lipid hazır; hipoksemi ve hiperkapni riski artırır.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K58</td><td><div class="soru-metni"><strong>Çocukta blok geçişini nasıl yönetirsiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Blok kısa ve öngörülemez; aileye zaman çizelgesi verilir.</li><li>Parasetamol ve NSAİİ saatli, erken başlanır.</li><li>Ağrı, karıncalanma veya motor dönüşte düzenli ağızdan opioid; gerekirse kateter veya klonidin.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K59</td><td><div class="soru-metni"><strong>Serebral palsili çocuğun anestezi açısından özellikleri nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>MAC düşük, opioid ve anesteziklere duyarlı; aşırı sedasyon riski.</li><li>Nöbet, aspirasyon, reflü; solunum komplikasyonları.</li><li>Spazmlar; benzodiazepin iyi tolere edilir.</li><li>Baklofen pompasında nöroaksiyel kontrendike; hipotermi; lateks alerjisi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K60</td><td><div class="soru-metni"><strong>Osteogenezis imperfekta ve Duchenne müsküler distrofide anestezi açısından kritik noktalar nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Osteogenezis imperfekta: pozisyon, turnike, manşon ve süksinilokline kırık; zor havayolu; kanama; hiperpireksi.</li><li>Duchenne: kardiyomiyopati, ileti bozukluğu; süksiniloklin mutlak kontrendike; halojenlilerle hiperkalemi ve rabdomiyoliz; dantrolen hazır.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U47</td><td><div class="soru-metni"><strong>18 kg'lik çocukta pes ekinovarus cerrahisi için genel anestezi altında popliteal ve safen blok planlıyorsunuz; cerrah da yara infiltrasyonu yapmak istiyor. Doz hesabınızı ve güvenlik önlemlerinizi anlatınız. Enjeksiyondan sonra EKG'de T dalgası değişikliği görürseniz ne yaparsınız?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Toplam doz kiloya göre; bupivakain üst sınırı 2,5–3 mg/kg, blok ve infiltrasyon toplanır.</li><li>Ultrasonografi, bölünmüş doz, aspirasyon, EKG izlemi, lipid hazır.</li><li>T dalgası değişikliği damar içine enjeksiyonun ilk bulgusu olabilir; enjeksiyon durdurulur, oksijenasyon ve ventilasyon düzeltilir, lipid emülsiyonu verilir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U48</td><td><div class="soru-metni"><strong>Lomber epidural altında kalça osteotomisi yapılan 6 yaşında çocukta kan basıncı aniden düşüyor ve taşikardi gelişiyor. Fizyolojiye dayanarak ayırıcı tanınızı anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>&lt;8 yaşta sempatektomi hipotansiyonu nadir.</li><li>Ani kan basıncı düşüşü ve taşikardide anafilaksi ve akut kanama düşünülmeli.</li><li>Lokal anestezik toksisitesi de ayırıcı tanıdadır.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U49</td><td><div class="soru-metni"><strong>İntratekal baklofen pompası olan spastik serebral palsili 12 yaşında çocuk femur osteotomisine geliyor. Anestezi ve analjezi planınızı anlatınız. Postop hasta hipotonik ve uykulu; ne düşünürsünüz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Baklofen pompası nöroaksiyeli kontrendike eder; pompa sürdürülür.</li><li>Genel anestezi + periferik blok; düşük doz anestezik ve opioid, MAC düşük.</li><li>Antikonvülzan devamı, ısıtma, latekssiz ortam, spazm için benzodiazepin.</li><li>Postop hipotoni ve uykululuk: baklofen aşırı dozu veya ilaç etkileşimi; aşırı sedasyon.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U50</td><td><div class="soru-metni"><strong>Osteogenezis imperfektalı çocukta femur çivilemesi için anestezi planınızı pozisyon, monitörizasyon, havayolu ve ilaç seçimi açısından anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Pozisyon ve transferde kırık riski; turnike ve noninvaziv manşondan kaçınılır, arter kateteri.</li><li>Zor havayolu; boyun ekstansiyonunda servikal ve mandibula kırığı.</li><li>Süksiniloklin fasikülasyonları kırık yapabilir.</li><li>Trombosit disfonksiyonu ve kanama; hiperpireksi.</li></ul></div></td></tr>
+
+            <!-- MODÜL 11 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 11: Turnike</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K61</td><td><div class="soru-metni"><strong>Ortopedik cerrahide turnike neden kullanılır? Diz artroplastisinde toplam kan kaybını ve transfüzyonu azaltır mı?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kansız cerrahi alan ve daha iyi görüş.</li><li>Ameliyat sırasındaki kaybı azaltır.</li><li>Dren kaybını ve transfüzyon oranını değiştirmez; gizli kan kaybı artar.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K62</td><td><div class="soru-metni"><strong>Turnike manşonu nasıl seçilir? Kol ve uyluk için basınç nasıl belirlenir? Hangi hastalarda dikkatlı olunur? Turnike şişikken neden kanama olabilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Genişlik ekstremite çapının yarısından fazla.</li><li>Uyluk SKB + 100, kol SKB + 50 mmHg.</li><li>Dikkat: ağır ateroskleroz, aktif enfeksiyon veya tromboz, osteogenezis imperfekta, antifosfolipid sendromu.</li><li>Kanama nedeni: kemik iliği içi akım veya iki kemik arası küçük arterler.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K63</td><td><div class="soru-metni"><strong>Turnike altında dokuda ne olur? Güvenli süre nedir, daha uzun süre gerekirse ne yapılır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Hipoksi ve asidoz.</li><li>2 saat.</li><li>Perfüzyon arası ve yeniden eksanguinasyon; 30 dakika.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K64</td><td><div class="soru-metni"><strong>Turnike ağrısı ne zaman ortaya çıkar? Neden rejyonel anesteziye rağmen görülebilir? Nasıl tedavi edilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Süreyle artar; yaklaşık 60. dakikada sempatik yanıt.</li><li>Rejyonel anesteziye ve opioide dirençli olabilir; mekanizma bilinmiyor.</li><li>Opioid veya hipnotik; kesin çözüm deflasyon.</li><li>Kolda interkostobrakiyal sinir infiltrasyonu.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K65</td><td><div class="soru-metni"><strong>Turnike deflasyonunda hangi hemodinamik, solunumsal, metabolik ve hemostatik değişiklikleri beklersiniz? Mekanizması nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ortalama arter basıncı ve santral venöz basınç düşer.</li><li>PaCO2 ve EtCO2 yükselir.</li><li>Laktat ve potasyum yükselir, geçici metabolik asidoz.</li><li>Mekanizma: iskemik ekstremiteden metabolitlerin dolaşıma geçmesi.</li><li>Fibrinolizde artış; reaktif hiperemi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K66</td><td><div class="soru-metni"><strong>Turnikenin lokal komplikasyonlarını sayınız. Post-turnike sendromu nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Sinir hasarı, kas hasarı ve rabdomiyoliz, damar hasarı, hematom, ödem, kompartman sendromu.</li><li>Post-turnike sendromu: 2 saati aşan iskemi sonrası soluk, ödemli, sert, güçsüz ekstremite; felç yok; kas hücresi hasarı.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U51</td><td><div class="soru-metni"><strong>Spinal anestezi altında total diz artroplastisi, turnikenin 75. dakikası. Hasta huzursuz, hipertansif ve taşikardik. Ayırıcı tanınız ve yönetiminiz nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Turnike ağrısı düşünülür (süre ve zamanlama uyumlu).</li><li>Diğer nedenler dışlanır: blok yetersizliği, hipoksi, hiperkapni, mesane distansiyonu.</li><li>Opioid veya hipnotik; yanıt yoksa cerrahla deflasyon konuşulur.</li><li>Genel anesteziye geçiş gerekebilir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U52</td><td><div class="soru-metni"><strong>Önkol cerrahisinde turnike şişik, ancak cerrahi alanda kanama sürüyor. Cerrah basıncı artırmanızı istiyor. Yanıtınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kaynak kemik iliği içi akım veya kemikler arası arterler.</li><li>Aşırı şişirme kanamayı çözmez; sinir, kas ve damar hasarını artırır.</li><li>Cerrahi hemostaz ve basıncın uygunluğu cerrahla birlikte değerlendirilir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U53</td><td><div class="soru-metni"><strong>Ejeksiyon fraksiyonu düşük, ciddi kalp hastalığı olan bir hastada uyluk turnikesi açılacak. Ne beklersiniz, nasıl hazırlanırsınız?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Beklenen: hipotansiyon, PaCO2 ve EtCO2 artışı, asidoz, potasyum artışı.</li><li>Düşük rezervli hastada bu değişiklikler tolere edilmeyebilir.</li><li>Hazırlık: yakın hemodinamik izlem, deflasyon zamanlamasını cerrahla konuşma, vazopresör hazırlığı, ventilasyonu EtCO2'ye göre ayarlama.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U54</td><td><div class="soru-metni"><strong>Revizyon artroplastisi uzadı; turnike 110. dakikada ve cerrah en az 40 dakika daha istiyor. Ne önerirsiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Güvenli süre 2 saat.</li><li>120. dakikada perfüzyon arası; 30 dakika ara ve yeniden eksanguinasyon.</li><li>Karar ve süreler kayda geçirilir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U55</td><td><div class="soru-metni"><strong>Tibia cerrahisi sonrası, siyatik blok altındaki hasta birkaç saat sonra artan ağrı ve gergin bacak tarif ediyor. Ayırıcı tanınız ve yaklaşımınız nedir? Blokların bu tablodaki rolünü tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ayırıcı tanı: akut kompartman sendromu, post-turnike sendromu, blok etkisinin geçmesi.</li><li>Bloklar kompartman sendromunu maskeleyebilir.</li><li>Ortopedi hemen çağrılır; kompartman basıncı ölçümü ve gerekirse fasiyotomi.</li><li>Riskli hastada blok kararı cerrahi ekiple birlikte, en düşük etkili lokal anestezik dozu.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U56</td><td><div class="soru-metni"><strong>Cerrah diz artroplastisini turnikesiz yapmayı düşünüyor. Turnikenin kan kaybı, gizli kan kaybı, venöz tromboemboli ve rehabilitasyon üzerine etkileri hakkında kanıt tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ameliyat sırasındaki kaybı azaltır, transfüzyon oranını değiştirmez.</li><li>Reaktif hiperemi ve fibrinolize bağlı gizli kan kaybı.</li><li>Fibrinoliz, trombosit disfonksiyonu, venöz staz ve damar hasarıyla tromboz riskinde olası artış.</li><li>Kas fonksiyonu ve rehabilitasyon endişesi; karar çoğunlukla cerrahi tercihe dayanır.</li></ul></div></td></tr>
+
+            <!-- MODÜL 12 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 12: Yağ Embolisi Sendromu ve Kemik Çimentosu İmplantasyon Sendromu</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K67</td><td><div class="soru-metni"><strong>Artroplasti sırasında embolizasyon nasıl olur? Kalp ve akciğeri nasıl etkiler?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kanalın basınçlanmasıyla yağ, ilik, çimento ve kemik dolaşıma geçer.</li><li>Pulmoner damar direncinde artış, sağ ventrikül yüklenmesi, aritmi, hipotansiyon; ARDS.</li><li>Venöz staz ve tromboz; patent foramen ovaleyle beyin ve böbrek mikroembolisi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K68</td><td><div class="soru-metni"><strong>Yağ embolisi sendromunun bulguları nelerdir? Ne zaman ortaya çıkar? Gurd ve Schonfeld ölçütlerini anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Hipoksemi, peteşi, bilinç değişikliği; taşikardi, ateş.</li><li>Tipik olarak 24–48 saat; fulminan formda saatler.</li><li>Gurd: 1 majör + 4 minör veya laboratuvar; Schonfeld: ≥5 puan.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K69</td><td><div class="soru-metni"><strong>YES'in oluşumunu açıklayan iki teori nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Mekanik: yağ damlacıkları küçük damarları tıkar.</li><li>Biyokimyasal: serbest yağ asitlerinin pnömositlere toksik etkisi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K70</td><td><div class="soru-metni"><strong>Kemik çimentosu implantasyon sendromu nedir? Ne zaman görülür? Nasıl derecelendirilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Hipoksemi, hipotansiyon ve/veya bilinç değişikliği; çimento, protez yerleştirme, redüksiyon veya turnike deflasyonu ile zamansal ilişki.</li><li>Derece 1: satürasyon &lt;%94 veya sistolik basınçta &gt;%20 düşme; derece 2: satürasyon &lt;%88, &gt;%40 düşme veya bilinç kaybı; derece 3: resüsitasyon gerektiren kollaps.</li><li>Mekanizma: monomer değil, yağ ve debris embolisi; endotel hasarı, histamin, kompleman.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K71</td><td><div class="soru-metni"><strong>Çimento reaksiyonu riskini azaltmak için cerrahi ve anestezi açısından neler yapılabilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Hasta seçimi; kırılgan hastada iki taraflı cerrahiden kaçınma.</li><li>Çimentosuz implant veya vakum drenajı.</li><li>Arter kateteri.</li><li>Oksijen fraksiyonunu artırma, normovolemi, vazopresör hazırlığı, cerrahla iletişim.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K72</td><td><div class="soru-metni"><strong>Embolik komplikasyonlar neden çoğunlukla ameliyattan günler sonra ortaya çıkar?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>İlk evrede mekanik tıkanma ve vazokonstriksiyon; ardından süren kalp-akciğer yükü ve inflamasyon.</li><li>Akciğer yıkım belirteçleri 3. günde pik; komplikasyonların %90'ı ilk 4 günde.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U57</td><td><div class="soru-metni"><strong>Spinal anestezi altında çimentolu hemiartroplasti yapılan 89 yaşında hastada çimento sırasında oksijen satürasyonu %85'e, sistolik kan basıncı 60 mmHg'ye düşüyor ve hasta yanıt vermiyor. Tanınız, derecesi, patofizyolojisi ve yönetiminiz nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Derece 2–3 KÇİS: ağır hipoksi, ağır hipotansiyon ve bilinç kaybı.</li><li>Patofizyoloji: embolizasyon, pulmoner damar direncinde artış, sağ ventrikül yetmezliği, hipotansiyon.</li><li>Yönetim: %100 oksijen ve havayolu güvenliği, sıvı, vazopresör ve inotrop; arrestte resüsitasyon.</li><li>Ayırıcı tanıda yüksek spinal blok ve kanama.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U58</td><td><div class="soru-metni"><strong>Femur cisim kırığı nedeniyle traksiyondaki 24 yaşında hasta ameliyattan bir gün önce konfüze ve takipneik; aksillada peteşi var. Tanınızı ölçütlerle gerekçelendiriniz. Ameliyata alır mısınız, anestezi planınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>YES: Gurd'a göre majör bulgular (peteşi, hipoksemi, bilinç değişikliği); Schonfeld'de peteşi tek başına 5 puan.</li><li>Uzun kemik kırığında 24–48 saatlik tipik zamanlama.</li><li>Destekleyici tedavi, gerekirse erken mekanik ventilasyon.</li><li>Erken tespit YES’i önlemeye yardımcıdır, ancak aktif YES’te cerrahinin zamanlaması ekiplerin ortak kararıdır; ek embolik yük riski.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U59</td><td><div class="soru-metni"><strong>Pulmoner hipertansiyonlu 82 yaşında kadın yer değiştirmiş femur boynu kırığıyla geliyor. Cerrahla birlikte planlamanızı embolik yük ve organ rezervi kavramlarıyla anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Pulmoner hipertansiyonda mortalite belirgin artar; organ rezervi düşük.</li><li>Çimentosuz seçenek veya vakum drenajı.</li><li>Arter kateteri, gerekirse santral veya pulmoner arter kateteri.</li><li>Çimento anında oksijen, normovolemi, vazopresör hazırlığı.</li><li>Postop yakın izlem.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U60</td><td><div class="soru-metni"><strong>Çimentolu kalça artroplastisi sorunsuz geçti; servis hastayı ertesi gün taburcu etmek istiyor. Ne önerirsiniz, neden?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Embolik komplikasyonlar ilk günlerde ortaya çıkar; %90’ı ilk 4 günde.</li><li>Akciğer hasarı 3. günde pik yapar.</li><li>Yüksek riskli hastada erken taburculuk yerine izlem önerilir.</li></ul></div></td></tr>
+
+            <!-- MODÜL 13 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 13: Akut Kompartman Sendromu</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K73</td><td><div class="soru-metni"><strong>Kompartman sendromunun patofizyolojisini anlatınız. Tanıda kullanılan basınç eşiği nedir? Hipotansiyon neden önemlidir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kapalı kompartmanda doku basıncı kapiller perfüzyon basıncını aşar, iskemi.</li><li>Fasya esnemez; ödem veya kanama basıncı artırır.</li><li>ΔP (diyastolik kan basıncı – kompartman basıncı) &lt;30 mmHg.</li><li>Hipotansiyon ΔP'yi düşürür.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K74</td><td><div class="soru-metni"><strong>Kompartman sendromu riski yüksek yaralanma ve cerrahiler nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Tibia cisim kırığı (%36), yumuşak doku yaralanması, önkol ve distal radius kırıkları, ezilme yaralanması, tibia platosu.</li><li>Yüksek tibia ve alçak femur osteotomileri, çift kemik önkol kırıkları.</li><li>Sıkı alçı ve bandaj.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K75</td><td><div class="soru-metni"><strong>Kompartman sendromunun bulgularını sayınız. En erken objektif bulgu nedir? Çocukta tanı nasıl farklıdır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Beş P: ağrı, solukluk, poikilotermi, parestezi, nabızsızlık; orantısız ağrı ilk bulgu.</li><li>Pasif germede ağrı en erken objektif bulgu.</li><li>Çocukta üç A: ajitasyon, anksiyete, artan analjezik ihtiyacı.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K76</td><td><div class="soru-metni"><strong>Rejyonel anestezi kompartman sendromu tanısını geciktirir mi? Riskli hastada nasıl bir yaklaşım izlersiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ağrı çoğu zaman bloğu delip geçer, ancak maskelenme bildirilmiştir.</li><li>Cerrahi ekip ve hastayla ortak karar; en düşük etkili doz ve konsantrasyon.</li><li>Springer: yüksek riskte uzun etkili periferik bloktan kaçınma; kısa etkili veya titre edilebilir teknik.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K77</td><td><div class="soru-metni"><strong>Tedavi nedir? Fasiyotominin gecikmesinin sonuçları nelerdir? Hangi sistemik komplikasyonlar izlenir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Acil fasiyotomi ve debridman.</li><li>12–24 saatten sonra fasiyotomi morbidite ve mortaliteyi artırır; geç fasiyotomide komplikasyon %54.</li><li>Sepsis, rabdomiyoliz ve böbrek yetmezliği; CK ve böbrek izlemi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K78</td><td><div class="soru-metni"><strong>Perioperatif dönemde iatrojenik kompartman sendromunun nedenleri nelerdir? Gluteal kompartman sendromu kimde görülür?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Pozisyon, turnike, immobilizasyon cihazları.</li><li>Traksiyon masasında sağlam bacak.</li><li>Gluteal: uzun immobilizasyon, obezite, artroplasti sonrası alttaki taraf.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U61</td><td><div class="soru-metni"><strong>Tibia cisim kırığı çivilemesinden sonra 4. saatte hasta şiddetli bacak ağrısı tarif ediyor; diyastolik kan basıncı 70 mmHg, ön kompartman basıncı 45 mmHg ölçülüyor. Değerlendirmeniz ve yaklaşımınız nedir? Hasta ameliyathanede hipotansif kalırsa ne değişir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>ΔP = 70 – 45 = 25 mmHg; 30'un altında, tanı koydurucu.</li><li>Ortopedi hemen çağrılır; acil fasiyotomi.</li><li>Hipotansiyon ΔP'yi daha da düşürür, iskemiyi derinleştirir; kan basıncı korunmalıdır.</li><li>CK ve böbrek fonksiyonu izlemi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U62</td><td><div class="soru-metni"><strong>Cerrah, tibia platosu kırığı tespiti için "hasta rahat etsin" diye siyatik ve adduktor kanal bloğu yapmanızı öneriyor. Kanıta dayanarak nasıl bir karar verirsiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Tibia platosu kırığı yüksek risklidir.</li><li>Bloklar kompartman sendromunu maskeleyebilir.</li><li>Karar cerrah ve hastayla; en düşük etkili doz (Barash) veya uzun etkili yoğun bloktan kaçınma (Springer).</li><li>Seri muayene planı ve titre edilebilir teknik.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U63</td><td><div class="soru-metni"><strong>Önkol çift kemik kırığı sonrası 7 yaşında çocuk ameliyattan sonra ağlıyor, huzursuz ve hasta kontrollü analjeziyi sık kullanıyor. Yaklaşımınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Çocukta beş P güvenilir değildir; üç A ile değerlendirilir.</li><li>Kompartman sendromundan şüphelenilir, ortopedi çağrılır, muayene ve gerekirse basınç ölçümü.</li><li>Çocukta geç fasiyotomide bile sonuçlar daha iyidir, ancak gecikilmemelidir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U64</td><td><div class="soru-metni"><strong>BKİ 42 olan hastada 5 saat süren lateral pozisyonda revizyon kalça artroplastisi sonrası hasta alttaki kalçasında şiddetli ağrı tarif ediyor. Ayırıcı tanınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Gluteal kompartman sendromu: uzun immobilizasyon ve obezite, alttaki taraf.</li><li>Ayırıcı tanıda pozisyona bağlı sinir hasarı ve cerrahi nedenler.</li><li>CK, böbrek fonksiyonu, ortopedi değerlendirmesi ve gerekirse basınç ölçümü.</li></ul></div></td></tr>
+
+            <!-- MODÜL 14 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 14: Venöz Tromboemboli, Kanama Riski ve Antitrombotik İlaçlarda Blok Zamanlaması</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K79</td><td><div class="soru-metni"><strong>Ortopedik cerrahide VTE neden sıktır? Virchow üçlüsü üzerinden açıklayınız. Artroplastiye özgü risk faktörleri nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Staz, endotel hasarı, hiperkoagülabilite; üçü birlikte.</li><li>Kemik cerrahisi kaskadı aktive eder; femur hazırlığında protrombin fragmanı pik; turnike ve pozisyon.</li><li>Genel anestezi, iki taraflı cerrahi, revizyon, kırık.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K80</td><td><div class="soru-metni"><strong>Ortopedik cerrahi sonrası VTE tanısında D-dimer ve ultrasonografinin sınırları nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ağrı ve şişlik zaten beklenir.</li><li>D-dimer çoğunda yüksek, tanı değeri sınırlı.</li><li>Ultrasonografinin distal pıhtıda duyarlılığı düşük (%83), ama belirti veren DVT'lerin çoğu proksimal.</li><li>Rutin görüntülemede belirtisiz PE sık; subsegmental PE'nin önemi tartışmalı.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K81</td><td><div class="soru-metni"><strong>VTE profilaksisinin ilkeleri nelerdir? Rejyonel anestezi DVT'yi hangi mekanizmalarla azaltır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Mekanik ve/veya farmakolojik; risk faktörlerinde daha güçlü; kılavuzlarda tür ve süre uzlaşısı yok.</li><li>Erken mobilizasyon.</li><li>Rejyonel anestezi: kan akımı artışı, venöz tonus azalması, pıhtılaşma ve stres yanıtında değişiklik.</li><li>Profilaksinin yerine geçmez.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K82</td><td><div class="soru-metni"><strong>Preop kanama riskini nasıl değerlendirirsiniz? Rutin koagülasyon testleri neden yetersizdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Standart kanama öyküsü anketi; risk faktörü yoksa rutin test gerekmez.</li><li>Testler faktör eksikliği için geliştirilmiştir, postop kanamayı öngörmez.</li><li>En duyarlı sorular: küçük yaralarda uzamış kanama, sık morarma, NSAİİ kullanımı.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K83</td><td><div class="soru-metni"><strong>DMAH, klopidogrel ve apiksaban kullanan hastada nöroaksiyel bloktan önce ne kadar beklersiniz? Kateter ne zaman çekilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>DMAH profilaktik 12 saat, tedavi 24 saat.</li><li>Klopidogrel 5–7 gün.</li><li>Apiksaban 72 saat; 6 saat sonra yeniden başlama.</li><li>Kateter: günde iki doz DMAH'ta ilk dozdan en az 4 saat önce çekilir; tek dozda son dozdan 12 saat sonra.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K84</td><td><div class="soru-metni"><strong>Epidural hematomun risk faktörleri ve bulguları nelerdir? Bu kurallar hangi periferik bloklarda da uygulanır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Risk: koagülasyon bozukluğu, spinal stenoz, ileri yaş; epiduralde spinalden fazla.</li><li>Bulgular: sırt ağrısı, ilerleyici motor ve duyu kaybı, sfinkter bozukluğu.</li><li>Derin pleksus blokları ve kompresyon yapılamayan damar yakınındaki bloklar.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U65</td><td><div class="soru-metni"><strong>Kalça artroplastisinin 3. günü hasta ani dispne ve taşikardi tarif ediyor; D-dimer yüksek. Fizyolojiyi ve tanı tuzaklarını dikkate alarak yaklaşımınızı anlatınız. Ayırıcı tanıda embolik başka hangi olay vardır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>PE düşünülmeli; D-dimer postop çoğunda yüksek olduğundan tek başına anlamsız.</li><li>BT anjiyografi; gerekirse bacak ultrasonografi.</li><li>Ayırıcı tanı: geç embolik komplikasyonlar ve yağ embolisi; artroplasti sonrası hayatı tehdit eden olayların çoğu ilk 4 günde.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U66</td><td><div class="soru-metni"><strong>Cerrah "spinal yapıyoruz, DVT riski düştü, profilaksiye gerek yok" diyor. Yanıtınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Rejyonel anestezi DVT'yi azaltır ama profilaksinin yerine geçmez.</li><li>Tüm kılavuzlar profilaksi önerir.</li><li>Hastanın risk faktörlerine göre mekanik ve farmakolojik profilaksi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U67</td><td><div class="soru-metni"><strong>Preop laboratuvarında izole uzamış aPTT bulunan, kanama öyküsü olmayan hasta diz protezi için geliyor. Yaklaşımınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Öyküsü negatif hastada izole uzamış aPTT çoğunlukla lupus antikoagülanıdır; kanama değil tromboz eğilimi.</li><li>Kanama anketi ve öykünün ayrıntılandırılması.</li><li>Gerekirse hematoloji; nöroaksiyel karar nedenine göre.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U68</td><td><div class="soru-metni"><strong>Günde iki doz tedavi dozunda DMAH alacak ve epidural kateteri bulunan hasta için hematoloji ameliyat akşamı DMAH başlamak istiyor. Kateter yönetimini nasıl planlarsınız?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Günde iki doz DMAH'ta kateter ilk dozdan en az 4 saat önce çekilmelidir.</li><li>Tedavi dozu antikoagülasyon kateterle önerilmez.</li><li>Kateter DMAH öncesi çekilir veya analjezi kateter gerektirmeyen yönteme geçilir; zamanlama hematolojiyle konuşulur.</li><li>Çekildikten sonra 24 saat nörolojik izlem.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U69</td><td><div class="soru-metni"><strong>Rivaroksaban kullanan hasta acil kalça kırığıyla geliyor; son doz 30 saat önce. Analjezi ve anestezi seçeneklerinizi gerekçeleriyle tartışınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Rivaroksaban için nöroaksiyelden önce 72 saat gerekir; 30 saat yetersiz.</li><li>Analjezi: yüzeyel periferik blok (fasya iliaka); lumbal pleksus gibi derin bloklardan kaçınılır.</li><li>Anestezi: genel anestezi; 48 saat hedefi nedeniyle beklemek uygun değil.</li><li>Postop antikoagülanın yeniden başlama zamanı ekiplerle belirlenir.</li></ul></div></td></tr>
+
+            <!-- MODÜL 15 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 15: Ortopedik Cerrahide Kan Yönetimi</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K85</td><td><div class="soru-metni"><strong>Hasta kan yönetiminin üç ayağı nedir? Preop anemi neden önemlidir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Eritropoezi optimize etmek, kan kaybını azaltmak, anemiye toleransı artırmak.</li><li>Preop Hb transfüzyonun en tutarlı öngörücüsü.</li><li>Anemi enfeksiyon, komplikasyon, yatış ve mortaliteyle ilişkili.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K86</td><td><div class="soru-metni"><strong>Preop anemiyi nasıl değerlendirirsiniz? İnflamasyon anemisinde ağızdan demir neden etkisizdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Hb 30 gün önce; MCV'ye göre B12 ve folat veya ferritin ve transferrin satürasyonu; normositerde retikülosit ve kreatinin.</li><li>İnflamasyon anemisinde hepsidin yüksek; ferroportin hücre içine alınır, demir emilimi bozulur, demir makrofajlarda tutulur.</li><li>Damar içi demir bu engeli aşar.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K87</td><td><div class="soru-metni"><strong>Otolog kan bağışının yararları ve sınırları nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Yarar: virüs bulaşı ve alloimmünizasyon yok, retikülositozun erken uyarılması.</li><li>Allojenik maruziyeti %68 azaltır, ama herhangi bir transfüzyon riskini %24 artırır.</li><li>Maliyet, %50'ye varan atık ünite, transfüzyon reaksiyonu ve idari hata riski.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K88</td><td><div class="soru-metni"><strong>Ameliyat sırasında kan kaybını azaltmak için neler yaparsınız? TXA nasıl etki eder?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>TXA, hücre kurtarma, pozisyon, normotermi, kontrollü hipotansiyon (tartışmalı).</li><li>TXA antifibrinolitiktir; cerrahi ve turnikeye bağlı fibrinolizi baskılar.</li><li>Omurgada pulmoner emboli, DVT veya miyokard infarktüsü artışı olmadan kanamayı azaltır.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K89</td><td><div class="soru-metni"><strong>Hangi Hb değerinde transfüzyon yaparsınız? Transfüzyonun riskleri nelerdir? TRALI nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Ek hastalığı olmayan hastada Hb 7–8 g/dL; belirtilere göre.</li><li>Enfeksiyon, reaksiyon, dolaşım yüklenmesi, TRALI, TRIM.</li><li>TRALI: 6 saat içinde kalp kaynaklı olmayan pulmoner ödem, nötrofil aracılı endotel hasarı; transfüzyon ölümlerinin önde gelen nedeni.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K90</td><td><div class="soru-metni"><strong>Postop anemi neden yavaş düzelir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kan kaybına ek olarak inflamatuvar sitokinler eritropoezi ve eritropoetini baskılar.</li><li>Fonksiyonel demir eksikliği.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U70</td><td><div class="soru-metni"><strong>Romatoid artritli, Hb 10,8 g/dL, MCV normal, ferritin yüksek olan hasta 6 hafta sonra total diz protezi için planlanıyor. Anemiyi değerlendirip optimize etme planınızı mekanizmalarıyla anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Normositer anemi ve yüksek ferritin; romatoid artritte inflamasyon anemisi olası.</li><li>Hepsidin yüksek; ağızdan demir etkisiz, damar içi demir ± eritropoetin.</li><li>Retikülosit, böbrek fonksiyonu, B12 ve folat.</li><li>Ameliyat sırasında TXA; kısıtlayıcı transfüzyon.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U71</td><td><div class="soru-metni"><strong>Hb 14 g/dL olan 55 yaşında hastanın cerrahı otolog kan bağışı istiyor. Görüşünüzü nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Hb &gt;13 g/dL hastada yararı az, atık oranı yüksek.</li><li>Herhangi bir transfüzyon riskini artırır.</li><li>TXA ve kısıtlayıcı transfüzyonla allojenik ihtiyaç zaten düşük.</li><li>Önerilmez.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U72</td><td><div class="soru-metni"><strong>Revizyon kalça artroplastisinde 2.000 mL kanama oldu ve cerrahi alan sızıntılı. Değerlendirmeniz ve kan koruma ile koagülasyon yönetiminiz nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Fibrinoliz ve faktör/trombosit dilüsyonuna bağlı koagülopati.</li><li>Protrombin zamanı, aPTT veya ROTEM ile yönlendirilmiş tedavi.</li><li>TXA, hücre kurtarma, normotermi.</li><li>Hemodinamik destek ve transfüzyon eşiğinin klinik duruma göre belirlenmesi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U73</td><td><div class="soru-metni"><strong>Koroner arter hastası 78 yaşındaki hastada postop 1. gün Hb 7,6 g/dL. Transfüzyon kararınızı gerekçelendiriniz.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Koroner hastada anemi iskemiyi tetikleyebilir; ek hastalığı olmayan hasta için verilen 7–8 eşiği doğrudan uygulanamaz.</li><li>Belirtiler: taşikardi, dispne, mental değişiklik, iskemi.</li><li>Karar bireysel; belirti ve iskemi bulgusu varsa transfüzyon.</li><li>Transfüzyon riskleri hesaba katılır.</li></ul></div></td></tr>
+
+            <!-- MODÜL 16 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 16: Postoperatif Ağrı ve Multimodal Analjezi</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K91</td><td><div class="soru-metni"><strong>Cerrahi ağrının patofizyolojisini anlatınız. Periferik ve santral duyarlılaşma nedir? Preemptif ve preventif analjezi arasındaki fark nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Doku hasarı → mediyatör salınımı → nosisepsiyon; periferde nörojenik inflamasyon.</li><li>Duyarlılaşma: nosiseptif nöronların artmış yanıtı.</li><li>Preemptif: zamanlamayla duyarlılaşmayı önleme, kanıt karışık; preventif: perioperatif dönem boyunca etki, rejyonel teknikler hiperaljeziyi önleyebilir.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K92</td><td><div class="soru-metni"><strong>Kronik postcerrahi ağrının tanımı ve risk faktörleri nelerdir? Nasıl önlenebilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>En az 2 ay, başka neden yok.</li><li>Genç yaş, obezite, kadın, anksiyete, depresyon, felaketleştirme, şiddetli akut ağrı.</li><li>Akut ağrının rejyonel anestezi, infiltrasyon ve gabapentinle etkin kontrolü.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K93</td><td><div class="soru-metni"><strong>Multimodal analjezide kullanılan ilaçları mekanizma ve başlıca yan etkileriyle sayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Parasetamol: karaciğer toksisitesi, ≤4 g/gün.</li><li>NSAİİ: COX inhibisyonu; kanama, mide, böbrek, kemik iyileşmesi.</li><li>Gabapentinoid: sedasyon, kanıt çelişkili.</li><li>Ketamin NMDA antagonisti; deksmedetomidin α-2 agonist; deksametazon; tramadol (nöbet, serotonin sendromu).</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K94</td><td><div class="soru-metni"><strong>HKA'nın avantajları nelerdir? Solunum depresyonunu önler mi?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Daha iyi analjezi ve memnuniyet, hasta özerkliği.</li><li>Kilit süresi aşırı dozu sınırlar ama solunum depresyonunu önlemez.</li><li>Uyku apnesinde bazal infüzyondan kaçınılır.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K95</td><td><div class="soru-metni"><strong>Periartiküler infiltrasyon ve perinöral adjuvanlar hakkında ne biliyorsunuz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>İnfiltrasyon: plaseboya göre daha iyi analjezi, daha az opioid ve bulantı-kusma; bloklardan üstün değil.</li><li>Motor koruyucu bloklarla birleşince erken mobilizasyon.</li><li>Adjuvan: deksametazon en çok çalışılanı, analjeziyi %50–100 uzatır; 1–4 mg, üstünde tavan etkisi.</li><li>Lipozomal bupivakain ortopedide üstün değil.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K96</td><td><div class="soru-metni"><strong>Rebound ağrı nedir? Nasıl önlenir? İntratekal morfinin avantaj ve dezavantajları nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Rebound: blok geçince orta-şiddetli ağrı; blok süresi öngörücü.</li><li>Önleme: blok geçmeden multimodal tedavi, uzun blok, kateter veya adjuvan.</li><li>İntratekal morfin: 1 gün analjezi; gecikmiş solunum depresyonu, kaşıntı; ayaktan hastada uygun değil.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U74</td><td><div class="soru-metni"><strong>Anksiyete ve felaketleştirme özellikleri olan 42 yaşında kadın total diz protezi için geliyor. Kronik postcerrahi ağrı riskini ve bunu azaltmaya yönelik perioperatif planınızı anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kadın, genç yaş, anksiyete, felaketleştirme; diz artroplastisi yüksek riskli cerrahi.</li><li>Şiddetli akut ağrıyı önlemek için rejyonel anestezi, infiltrasyon, multimodal tedavi.</li><li>Gabapentinoid seçilmiş hastada düşünülebilir; kanıt çelişkili.</li><li>Preop eğitim ve gerçekçi beklenti; ağrı ekibiyle izlem.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U75</td><td><div class="soru-metni"><strong>Böbrek fonksiyonu sınırda, uyku apneli, 76 yaşında hastada kalça artroplastisi sonrası multimodal analjezi planınızı her ilacın mekanizması ve riskiyle gerekçelendiriniz.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Parasetamol saatli.</li><li>NSAİİ ve COX-2 inhibitöründen böbrek nedeniyle kaçınılır veya en kısa süre kullanılır.</li><li>Opioid en az, bazal infüzyon yok; uyku apnesi ve yaşlılıkta solunum depresyonu ve deliryum.</li><li>Periferik blok veya infiltrasyon; deksmedetomidin veya ketamin opioid azaltıcı; benzodiazepinden kaçınma.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U76</td><td><div class="soru-metni"><strong>Total diz protezinde femoral blok, adduktor kanal + IPACK ve periartiküler infiltrasyon seçeneklerini analjezi, mobilizasyon ve kanıt açısından karşılaştırınız. Adjuvan seçiminiz nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Femoral: iyi analjezi, kuadriseps güçsüzlüğü ve düşme.</li><li>Adduktor kanal + IPACK: benzer analjezi, motor güç korunur, erken mobilizasyon.</li><li>İnfiltrasyon: plaseboya üstün, bloklardan üstün değil; birlikte kullanım yararlı.</li><li>Adjuvan: perinöral deksametazon 1–4 mg.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U77</td><td><div class="soru-metni"><strong>Ayaktan ön çapraz bağ cerrahisinde spinal anestezi ve blok planlıyorsunuz. Spinal ajan seçiminizi, intratekal morfin kararınızı ve rebound ağrıyı önleme planınızı anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kloroprokaïn: kısa süre, düşük geçici nörolojik semptom ve retansiyon.</li><li>İntratekal morfin ayaktan hastada uygun değil (gecikmiş solunum depresyonu).</li><li>Adduktor kanal ± IPACK; deksametazon adjuvanı.</li><li>Taburculukta multimodal ilaçlar blok geçmeden başlanır; hastaya blok süresi anlatılır.</li></ul></div></td></tr>
+
+            <!-- MODÜL 17 -->
+            <tr class="module-row" data-type="header"><td colspan="2">Modül 17: ERAS ve Derlenme Ünitesi</td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K97</td><td><div class="soru-metni"><strong>ERAS'ın fizyolojik temeli nedir? Cerrahi stres yanıtı iyileşmeyi nasıl geciktirir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Stres yanıtı: sitokin dengesizliği ve katabolizma.</li><li>Organ disfonksiyonu: ağrı, yorgunluk, deliryum, hareketsizlik, hemodinamik bozukluk, ileus.</li><li>Küçük girişimlerin sinerjik etkisi; bakım değişkenliğini azaltma.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K98</td><td><div class="soru-metni"><strong>ERAS'ın dört bileşenini anlatınız. Anestezistin bu bileşenlerdeki rolü nedir? Açlık süreleri ne olmalıdır?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Preop optimizasyon ve eğitim.</li><li>Stres yanıtını azaltma: nöroaksiyel anestezi ve blok, normovolemi, normotermi, normoglisemi.</li><li>Erken mobilizasyon ve beslenme: opioid azaltıcı multimodal analjezi, bulantı-kusma profilaksisi.</li><li>Postop bakım: kateter ve dren çıkarma, mobilizasyon.</li><li>Açlık: berrak sıvı en az 2 saat, karbonhidratlı sıvı 2–3 saat önce.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K99</td><td><div class="soru-metni"><strong>Artroplastide ERAS'ın kanıtlanmış yararları nelerdir? Kalça kırığında hangi ERAS bileşenleri öne çıkar?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Artroplasti: daha az komplikasyon, daha düşük 90 günlük mortalite, yatış 1–2 gün kısa, yeniden yatış artmaz.</li><li>Kalça kırığı: ortogeriatri, erken cerrahi, opioid azaltıcı analjezi, rejyonel analjezi, cerrahi günü mobilizasyon.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K100</td><td><div class="soru-metni"><strong>Nöroaksiyel blok sonrası derlenmede hipotansiyonu nasıl yönetirsiniz? Kristaloidi neden kısıtlarsınız?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Efedrin, sıvı, gerekirse transfüzyon.</li><li>Blok gerileyince göllenen hacim santrale döner; bol sıvı verilen kalp hastası ve yaşlıda kalp yetmezliği.</li><li>Hedefe yönelik sıvı; yatak başı ekokardiyografi.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K101</td><td><div class="soru-metni"><strong>Derlenmede transfüzyon kararını nasıl verirsiniz? Epidural hasta kontrollü analjezi ne zaman başlatılır? Derlenmeden taburculuğu neye göre verirsiniz?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Asemptomatik erişkinde hemoglobin 8 g/dL'nin üzerinde transfüzyon yapılmaz (merkez uygulaması); belirti ve ek hastalığa göre karar.</li><li>Epidural analjezi blok tam geçmeden başlanır; motor blok sık değerlendirilir.</li><li>Modifiye Aldrete skoru; uyku apneli hastada ek izlem.</li></ul></div></td></tr>
+            <tr data-type="K"><td class="soru-no bg-k">K102</td><td><div class="soru-metni"><strong>Ortopedik hastada derlenmeden sonra üst bakım ihtiyacının en sık nedenleri nelerdir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kardiyak olaylar en sık, ardından pulmoner ve nörolojik olaylar.</li><li>Majör omurga, iki taraflı diz, iskemik kalp ve akciğer hastalığında uzun izlem.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U78</td><td><div class="soru-metni"><strong>Hastanızda total diz artroplastisi için bir ERAS yolağı kuruyorsunuz. Anestezi bileşenlerini fizyolojik gerekçeleriyle tasarlayınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Preop eğitim ve optimizasyon; kısa açlık süresi, karbonhidratlı içecek.</li><li>Sedasyonlu spinal + motor koruyucu blok + infiltrasyon; stres yanıtının baskılanması.</li><li>Normotermi, normovolemi, normoglisemi.</li><li>Multimodal analjezi, bulantı-kusma profilaksisi, sonda ve drenden kaçınma, cerrahi günü mobilizasyon.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U79</td><td><div class="soru-metni"><strong>Kalça kırığı hastaları için ERAS uygulamak elektif artroplastiden neden daha zordur ve neden daha yararlı olabilir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Yaşlı, ASA III, yatağa bağımlı, preop hazırlık zamanı yok.</li><li>Komplikasyon yükü yüksek olduğu için opioid azaltıcı analjezi, erken mobilizasyon ve fizyolojinin normale dönmesi daha çok fayda sağlayabilir.</li><li>Ortogeriatri ve erken cerrahi.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U80</td><td><div class="soru-metni"><strong>Spinal anestezi altında kalça artroplastisi yapılan, ejeksiyon fraksiyonu düşük 80 yaşında hasta derlenmede hipotansif ve hemoglobin 8,6 g/dL. Sıvı, vazopresör ve transfüzyon kararınızı fizyolojiye dayanarak anlatınız.</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Blok geçerken hipotansiyon beklenir; efedrinle destek.</li><li>Ejeksiyon fraksiyonu düşük hastada kristaloid kısıtlı, hedefe yönelik sıvı ve yatak başı eko; blok geçince santrale dönen hacim kalp yetmezliği yapabilir.</li><li>Hemoglobin 8,6: asemptomatik erişkinde eşiğin üstünde; ancak düşük ejeksiyon fraksiyonu ve hipotansiyonda iskemi bulguları ve süren kanama değerlendirilerek bireysel karar verilir.</li></ul></div></td></tr>
+            <tr data-type="U"><td class="soru-no bg-u">U81</td><td><div class="soru-metni"><strong>İki taraflı diz artroplastisi sonrası hasta derlenmede taşikardik, yeni atriyal fibrilasyon gelişti ve oksijen satürasyonu düşük. Ayırıcı tanınız ve yaklaşımınız nedir?</strong></div><button class="btn-toggle-ans" onclick="toggleSingleAnswer(this)">Cevabı Göster</button><div class="answer-content"><ul><li>Kardiyak olay, derlenme sonrası en sık üst bakım nedenidir.</li><li>İki taraflı diz: embolik yük, pulmoner damar direncinde artış, sağ ventrikül yüklenmesi ve atriyal fibrilasyon; yağ embolisi.</li><li>Ayırıcı tanıda kanama, sıvı yüklenmesi, pulmoner emboli, iskemi.</li><li>Oksijen, hız kontrolü, ekokardiyografi, üst bakım değerlendirmesi.</li></ul></div></td></tr>
+
+        </tbody>
+    </table>
+</div>
+
+<div id="simulationContainer" class="simulation-container" style="display:none;">
+
+    <div id="simSetup" class="sim-screen">
+        <div class="sim-setup-header">
+            <h2>🎯 Simülasyon Modu</h2>
+            <p>Kendini test et. Seviyeni ve sıralamayı seç, sonra başla.</p>
+        </div>
+
+        <div class="sim-section">
+            <h3>1. Seviye Seçin</h3>
+            <div class="sim-options">
+                <button class="sim-option-btn" data-sim-choice="level" data-value="K" onclick="selectSimOption('level','K')">
+                    🟦 Kıdemsiz
+                    <small>K soruları</small>
+                </button>
+                <button class="sim-option-btn" data-sim-choice="level" data-value="U" onclick="selectSimOption('level','U')">
+                    🟧 Uzmanlığa Yakın
+                    <small>U soruları</small>
+                </button>
+                <button class="sim-option-btn" data-sim-choice="level" data-value="all" onclick="selectSimOption('level','all')">
+                    🎯 Hepsi
+                    <small>K + U birlikte</small>
+                </button>
+            </div>
+        </div>
+
+        <div class="sim-section">
+            <h3>2. Sıralama</h3>
+            <div class="sim-options">
+                <button class="sim-option-btn" data-sim-choice="order" data-value="seq" onclick="selectSimOption('order','seq')">
+                    📋 Sırayla
+                    <small>Modül ve numara sırasına göre</small>
+                </button>
+                <button class="sim-option-btn" data-sim-choice="order" data-value="shuffle" onclick="selectSimOption('order','shuffle')">
+                    🔀 Karışık
+                    <small>Rastgele sıra</small>
+                </button>
+            </div>
+        </div>
+
+        <button id="simStartBtn" class="sim-start-btn" onclick="startSimulation()" disabled>Simülasyonu Başlat →</button>
+    </div>
+
+    <div id="simCard" class="sim-screen" style="display:none;">
+        <div class="sim-header">
+            <div class="sim-progress-text">
+                <span id="simModeLabel" class="sim-mode-label"></span>
+                <span>Soru <span id="simCurrentNum">1</span> / <span id="simTotalNum">1</span></span>
+            </div>
+            <div class="sim-progress-bar"><div id="simProgressFill" style="width:0%;"></div></div>
+        </div>
+
+        <div class="sim-card">
+            <div class="sim-card-meta">
+                <span id="simCardModule" class="sim-module-badge"></span>
+                <span id="simCardType" class="sim-type-badge"></span>
+            </div>
+            <div id="simCardQuestion" class="sim-question"></div>
+            <button id="simShowAnswerBtn" class="sim-show-answer-btn" onclick="revealAnswer()">👁️ Cevabı Göster</button>
+            <div id="simCardAnswer" class="sim-answer" style="display:none;"></div>
+            <div id="simCardActions" class="sim-card-actions" style="display:none;">
+                <button class="sim-didnt-know-btn" onclick="answerCard(false)">❌ Bilemedim</button>
+                <button class="sim-knew-btn" onclick="answerCard(true)">✓ Biliyordum</button>
+            </div>
+            <button class="sim-finish-btn" onclick="finishSimulationEarly()">⏹ Simülasyonu Erken Bitir</button>
+        </div>
+    </div>
+
+    <div id="simReport" class="sim-screen" style="display:none;">
+        <div class="sim-report-header">
+            <h2>📊 Simülasyon Raporu</h2>
+            <p id="simReportSubtitle"></p>
+        </div>
+
+        <div id="simReportStats" class="sim-stats"></div>
+        <div id="simReportList"></div>
+
+        <div class="sim-report-actions">
+            <button id="simRetryWrongBtn" class="sim-retry-btn" onclick="retryWrong()">🔁 Bilemediklerimi Tekrar Et</button>
+            <button class="sim-restart-btn" onclick="restartSimulation()">🔄 Yeniden Başlat</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* ============ BOYUT KONTROLÜ ============ */
+    let currentScale = 1.0;
+    const minScale = 0.5;
+    const maxScale = 2.0;
+    const step = 0.1;
+
+    function updateScaleDisplay() {
+        document.documentElement.style.setProperty('--scale', currentScale);
+        document.getElementById('scaleDisplay').innerText = '%' + Math.round(currentScale * 100);
+        document.getElementById('btn-min').disabled = (currentScale <= minScale);
+        document.getElementById('btn-plus').disabled = (currentScale >= maxScale);
+    }
+
+    function changeScale(delta) {
+        currentScale += delta;
+        if (currentScale < minScale) currentScale = minScale;
+        if (currentScale > maxScale) currentScale = maxScale;
+        currentScale = Math.round(currentScale * 10) / 10;
+        updateScaleDisplay();
+    }
+
+    /* ============ TABLO FONKSİYONLARI ============ */
+    function toggleAllAnswers() {
+        const btns = document.querySelectorAll('.btn-toggle-ans');
+        const answers = document.querySelectorAll('.answer-content');
+        const globalBtn = document.getElementById('globalToggleBtn');
+        const isShowing = globalBtn.getAttribute('data-showing') === 'true';
+
+        if (isShowing) {
+            answers.forEach(a => a.classList.remove('visible'));
+            btns.forEach(b => { b.classList.remove('active'); b.innerHTML = 'Cevabı Göster'; });
+            globalBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Tüm Cevapları Göster';
+            globalBtn.setAttribute('data-showing', 'false');
+        } else {
+            answers.forEach(a => a.classList.add('visible'));
+            btns.forEach(b => { b.classList.add('active'); b.innerHTML = 'Cevabı Gizle'; });
+            globalBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg> Tüm Cevapları Gizle';
+            globalBtn.setAttribute('data-showing', 'true');
+        }
+    }
+
+    function toggleSingleAnswer(btn) {
+        const answer = btn.nextElementSibling;
+        if (answer.classList.contains('visible')) {
+            answer.classList.remove('visible');
+            btn.classList.remove('active');
+            btn.innerHTML = 'Cevabı Göster';
+        } else {
+            answer.classList.add('visible');
+            btn.classList.add('active');
+            btn.innerHTML = 'Cevabı Gizle';
+        }
+    }
+
+    function filterTable(type, btn) {
+        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('#soruTablosu tbody tr').forEach(row => {
+            const rowType = row.getAttribute('data-type');
+            if (type === 'all') {
+                row.style.display = '';
+            } else {
+                row.style.display = (rowType === type || rowType === 'header') ? '' : 'none';
+            }
+        });
+    }
+
+    /* ============ TAB GEÇİŞİ ============ */
+    let activeTab = 'table';
+
+    function switchTab(tab) {
+        activeTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.tab === tab);
+        });
+        const tableContainer = document.getElementById('tableContainer');
+        const simContainer = document.getElementById('simulationContainer');
+        const tableOnlyEls = document.querySelectorAll('[data-tab-only="table"]');
+
+        if (tab === 'table') {
+            tableContainer.style.display = '';
+            simContainer.style.display = 'none';
+            tableOnlyEls.forEach(el => el.style.display = '');
+        } else {
+            tableContainer.style.display = 'none';
+            simContainer.style.display = '';
+            tableOnlyEls.forEach(el => el.style.display = 'none');
+            if (simData.allQuestions.length === 0) {
+                simData.allQuestions = extractAllQuestions();
+            }
+        }
+    }
+
+    /* ============ SİMÜLASYON ============ */
+    let simData = {
+        level: null,
+        order: null,
+        allQuestions: [],
+        currentQuestions: [],
+        currentIndex: 0,
+        results: [],
+        retryMode: false,
+        endedEarly: false,
+        lastLevel: null,
+        lastOrder: null
+    };
+
+    function extractAllQuestions() {
+        const questions = [];
+        let currentModule = '';
+        document.querySelectorAll('#soruTablosu tbody tr').forEach(row => {
+            const type = row.getAttribute('data-type');
+            if (type === 'header') {
+                const td = row.querySelector('td');
+                if (td) currentModule = td.textContent.trim();
+            } else if (type === 'K' || type === 'U') {
+                const soruNoEl = row.querySelector('.soru-no');
+                const soruMetniEl = row.querySelector('.soru-metni');
+                const answerEl = row.querySelector('.answer-content');
+                if (soruNoEl && soruMetniEl && answerEl) {
+                    questions.push({
+                        module: currentModule,
+                        type: type,
+                        no: soruNoEl.textContent.trim(),
+                        question: soruMetniEl.innerHTML,
+                        answer: answerEl.innerHTML,
+                        questionText: soruMetniEl.textContent.trim()
+                    });
+                }
+            }
+        });
+        return questions;
+    }
+
+    function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    function selectSimOption(type, value) {
+        simData[type] = value;
+        document.querySelectorAll('[data-sim-choice="' + type + '"]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === value);
+        });
+        const startBtn = document.getElementById('simStartBtn');
+        startBtn.disabled = !(simData.level && simData.order);
+    }
+
+    function startSimulation() {
+        let questions = simData.allQuestions.slice();
+        if (simData.level !== 'all') {
+            questions = questions.filter(q => q.type === simData.level);
+        }
+        if (simData.order === 'shuffle') {
+            questions = shuffle(questions);
+        }
+        simData.currentQuestions = questions;
+        simData.currentIndex = 0;
+        simData.results = [];
+        simData.retryMode = false;
+        simData.endedEarly = false;
+        simData.lastLevel = simData.level;
+        simData.lastOrder = simData.order;
+
+        document.getElementById('simSetup').style.display = 'none';
+        document.getElementById('simReport').style.display = 'none';
+        document.getElementById('simCard').style.display = '';
+        showCurrentCard();
+    }
+
+    function showCurrentCard() {
+        const q = simData.currentQuestions[simData.currentIndex];
+        if (!q) {
+            showReport();
+            return;
+        }
+        document.getElementById('simCurrentNum').textContent = simData.currentIndex + 1;
+        document.getElementById('simTotalNum').textContent = simData.currentQuestions.length;
+        document.getElementById('simProgressFill').style.width =
+            (simData.currentIndex / simData.currentQuestions.length * 100) + '%';
+
+        document.getElementById('simModeLabel').textContent = simData.retryMode ? '🔄 Tekrar Modu · ' : '';
+
+        document.getElementById('simCardModule').textContent = q.module;
+        const typeBadge = document.getElementById('simCardType');
+        typeBadge.textContent = q.type === 'K' ? 'Kıdemsiz' : 'Uzmanlığa Yakın';
+        typeBadge.className = 'sim-type-badge ' + (q.type === 'K' ? 'type-k' : 'type-u');
+
+        document.getElementById('simCardQuestion').innerHTML = q.question;
+        document.getElementById('simCardAnswer').innerHTML = q.answer;
+        document.getElementById('simCardAnswer').style.display = 'none';
+        document.getElementById('simCardActions').style.display = 'none';
+        const showBtn = document.getElementById('simShowAnswerBtn');
+        showBtn.style.display = '';
+        showBtn.textContent = '👁️ Cevabı Göster';
+    }
+
+    function revealAnswer() {
+        document.getElementById('simCardAnswer').style.display = '';
+        document.getElementById('simShowAnswerBtn').style.display = 'none';
+        document.getElementById('simCardActions').style.display = '';
+    }
+
+    function answerCard(knew) {
+        const q = simData.currentQuestions[simData.currentIndex];
+        simData.results.push({ question: q, knew: knew });
+        simData.currentIndex++;
+        showCurrentCard();
+    }
+
+    function finishSimulationEarly() {
+        const answeredCount = simData.results.length;
+        let msg;
+        if (answeredCount === 0) {
+            msg = 'Henüz hiç soru cevaplamadınız. Yine de simülasyonu bitirmek istiyor musunuz? (Boş rapor gösterilecek)';
+        } else {
+            msg = 'Simülasyonu şimdi bitirmek istediğinize emin misiniz?\n\nCevapladığınız ' + answeredCount + ' soruya göre rapor hazırlanacak.';
+        }
+        if (!confirm(msg)) return;
+        simData.endedEarly = true;
+        showReport();
+    }
+
+    function showReport() {
+        document.getElementById('simCard').style.display = 'none';
+        document.getElementById('simReport').style.display = '';
+
+        const total = simData.results.length;
+        const knew = simData.results.filter(r => r.knew).length;
+        const didntKnow = total - knew;
+        const pct = total > 0 ? Math.round((knew / total) * 100) : 0;
+
+        const levelLabel = simData.lastLevel === 'all' ? 'Hepsi' :
+                          simData.lastLevel === 'K' ? 'Kıdemsiz' : 'Uzmanlığa Yakın';
+
+        let subtitle = (simData.retryMode ? 'Tekrar turu sonucu · ' : '') +
+                       'Seviye: ' + levelLabel + ' · Toplam ' + total + ' soru';
+        if (simData.endedEarly) subtitle += ' · Erken bitirildi';
+        document.getElementById('simReportSubtitle').textContent = subtitle;
+
+        document.getElementById('simReportStats').innerHTML = `
+            <div class="stat-card">
+                <div class="stat-value">${total}</div>
+                <div class="stat-label">Cevaplanan</div>
+            </div>
+            <div class="stat-card stat-success">
+                <div class="stat-value">${knew}</div>
+                <div class="stat-label">Biliyordum</div>
+            </div>
+            <div class="stat-card stat-danger">
+                <div class="stat-value">${didntKnow}</div>
+                <div class="stat-label">Bilemedim</div>
+            </div>
+            <div class="stat-card stat-info">
+                <div class="stat-value">%${pct}</div>
+                <div class="stat-label">Başarı</div>
+            </div>
+        `;
+
+        const wrong = simData.results.filter(r => !r.knew);
+        const listEl = document.getElementById('simReportList');
+
+        if (total === 0) {
+            listEl.innerHTML = '<div class="report-empty">Henüz hiç soru cevaplamadınız. Rapor oluşturmak için en az bir soruyu cevaplamalısınız.</div>';
+        } else if (wrong.length === 0) {
+            listEl.innerHTML = '<div class="report-empty">🎉 Tebrikler! Cevapladığınız tüm soruları bildiniz.</div>';
+        } else {
+            const grouped = {};
+            wrong.forEach(r => {
+                if (!grouped[r.question.module]) grouped[r.question.module] = [];
+                grouped[r.question.module].push(r.question);
+            });
+
+            let html = '<h3 class="report-subtitle">Bilemediğiniz Sorular</h3>';
+            Object.keys(grouped).forEach(mod => {
+                html += '<div class="report-module"><div class="report-module-title">' + mod + '</div><ul class="report-question-list">';
+                grouped[mod].forEach(q => {
+                    const typeLabel = q.type === 'K' ? 'Kıdemsiz' : 'Uzmanlığa Yakın';
+                    const typeClass = q.type === 'K' ? 'type-k' : 'type-u';
+                    html += '<li>' +
+                        '<span class="report-qno ' + typeClass + '">' + q.no + '</span>' +
+                        '<span class="report-type ' + typeClass + '">' + typeLabel + '</span>' +
+                        '<span class="report-qtext">' + q.questionText + '</span>' +
+                        '</li>';
+                });
+                html += '</ul></div>';
+            });
+            listEl.innerHTML = html;
+        }
+
+        document.getElementById('simRetryWrongBtn').style.display = wrong.length > 0 ? '' : 'none';
+    }
+
+    function retryWrong() {
+        let wrong = simData.results.filter(r => !r.knew).map(r => r.question);
+        if (wrong.length === 0) return;
+        if (simData.lastOrder === 'shuffle') {
+            wrong = shuffle(wrong);
+        }
+        simData.currentQuestions = wrong;
+        simData.currentIndex = 0;
+        simData.results = [];
+        simData.retryMode = true;
+        simData.endedEarly = false;
+
+        document.getElementById('simReport').style.display = 'none';
+        document.getElementById('simCard').style.display = '';
+        showCurrentCard();
+    }
+
+    function restartSimulation() {
+        simData.level = null;
+        simData.order = null;
+        simData.currentQuestions = [];
+        simData.currentIndex = 0;
+        simData.results = [];
+        simData.retryMode = false;
+        simData.endedEarly = false;
+
+        document.getElementById('simSetup').style.display = '';
+        document.getElementById('simCard').style.display = 'none';
+        document.getElementById('simReport').style.display = 'none';
+
+        document.querySelectorAll('[data-sim-choice]').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('simStartBtn').disabled = true;
+    }
+
+    /* ============ BAŞLANGIÇ ============ */
+    updateScaleDisplay();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Çevrimdışı önbellek kaydı yapılamadı:', err)));
+}
+</script>
+</body>
+</html>
